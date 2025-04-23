@@ -36,6 +36,7 @@ namespace TextRPG
     interface IContractable
     {
         public void OnContracted();
+        public void OnContracted(Character character);
         public void OnProgress();
         public void OnProgress(Character character);
         public void OnCompleted(Character character);
@@ -44,5 +45,17 @@ namespace TextRPG
     interface ICancelable
     {
         public void OnCanceled(Character character);
+    }
+
+    interface ISkillActive
+    {
+        public bool OnActive(Character character, Monster target);
+        public bool OnActive(Character character, LinkedList<Monster> targets);
+    }
+
+    interface ISkillBuff
+    {
+        public bool OnActive(Character character);
+        public void OnBuffExpired(Character character);
     }
 }
