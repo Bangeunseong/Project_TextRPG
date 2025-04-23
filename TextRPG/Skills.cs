@@ -47,10 +47,10 @@ namespace TextRPG
     {
         // Constructor
         [JsonConstructor]
-        public ActiveSkill(string name, string description, float coefficient, 
-                           int manaCost, bool isTargetable) 
+        public ActiveSkill(string name, string description, float coefficient,
+                           int manaCost, bool isTargetable)
             : base(name, description, coefficient, manaCost, isTargetable) { }
-        public ActiveSkill(ActiveSkill skill) 
+        public ActiveSkill(ActiveSkill skill)
             : base(skill.Name, skill.Description, skill.Coefficient, skill.ManaCost, skill.IsTargetable) { }
 
         // Methods
@@ -70,13 +70,13 @@ namespace TextRPG
             
             character.OnMagicPointConsume(ManaCost);
             Console.WriteLine($"| 스킬_{Name}을 {target.Name}에 시전하였습니다! |");
-            
+
             AttackType? type = character.EquippedWeapon?.AttackType;
             switch (type)
             {
-                case AttackType.Close: target.OnDamage(AttackType.Close, Coefficient * character.AttackStat.Attack); break;
-                case AttackType.Long: target.OnDamage(AttackType.Long, Coefficient * character.AttackStat.RangeAttack); break;
-                case AttackType.Magic: target.OnDamage(AttackType.Magic, Coefficient * character.AttackStat.MagicAttack); break;
+                case AttackType.Close: target.OnDamage(AttackType.Close, Coefficient * character.AttackStat.Attack, true); break;
+                case AttackType.Long: target.OnDamage(AttackType.Long, Coefficient * character.AttackStat.RangeAttack, true); break;
+                case AttackType.Magic: target.OnDamage(AttackType.Magic, Coefficient * character.AttackStat.MagicAttack, true); break;
             }
             return true;
         }
@@ -107,7 +107,7 @@ namespace TextRPG
                     {
                         var next = current.Next;
                         Monster target = current.Value;
-                        target.OnDamage(AttackType.Close, Coefficient * character.AttackStat.Attack);
+                        target.OnDamage(AttackType.Close, Coefficient * character.AttackStat.Attack, true);
                         current = next;
                     }
                     break;
@@ -117,7 +117,7 @@ namespace TextRPG
                     {
                         var next = current.Next;
                         Monster target = current.Value;
-                        target.OnDamage(AttackType.Long, Coefficient * character.AttackStat.RangeAttack);
+                        target.OnDamage(AttackType.Long, Coefficient * character.AttackStat.RangeAttack, true);
                         current = next;
                     }
                     break;
@@ -127,7 +127,7 @@ namespace TextRPG
                     {
                         var next = current.Next;
                         Monster target = current.Value;
-                        target.OnDamage(AttackType.Magic, Coefficient * character.AttackStat.MagicAttack);
+                        target.OnDamage(AttackType.Magic, Coefficient * character.AttackStat.MagicAttack, true);
                         current = next;
                     }
                     break;
@@ -176,14 +176,13 @@ namespace TextRPG
 
             character.OnMagicPointConsume(ManaCost);
             Console.WriteLine($"| 스킬_{Name}을 시전하였습니다! |");
-            
+
             originalAttackStat = new(character.AttackStat);
             originalDefendStat = new(character.DefendStat);
             character.AttackStat *= Coefficient;
             character.DefendStat *= Coefficient;
             UsedTurn = GameManager.CurrentTurn;
             IsActive = true;
-
             return true;
         }
 

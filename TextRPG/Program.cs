@@ -69,15 +69,27 @@ namespace TextRPG
                     case 1: Console.WriteLine("| 좋은 하루 되세요! |"); return;
                     case 2:
                         if (GameManager.SelectedCharacter.Currency < 40) { Console.WriteLine("| 돈이 부족합니다! |"); }
-                        else { isSelected = true; }
+                        else 
+                        {
+                            foreach (string line in Miscs.Rest1) Console.WriteLine(line);
+                            isSelected = true; 
+                        }
                         break;
                     case 3:
                         if (GameManager.SelectedCharacter.Currency < 60) { Console.WriteLine("| 돈이 부족합니다! |"); }
-                        else { isSelected = true; }
+                        else 
+                        { 
+                            foreach(string line in Miscs.Rest2) Console.WriteLine(line);
+                            isSelected = true; 
+                        }
                         break;
                     case 4:
                         if (GameManager.SelectedCharacter.Currency < 80) { Console.WriteLine("| 돈이 부족합니다! |"); }
-                        else { isSelected = true; }
+                        else 
+                        { 
+                            foreach (string line in Miscs.Rest3) Console.WriteLine(line);
+                            isSelected = true;
+                        }
                         break;
                 }
             }
@@ -323,6 +335,7 @@ namespace TextRPG
             switch (category)
             {
                 case ItemCategory.Armor:
+                    foreach (string line in Miscs.ArmorDesign) Console.WriteLine(line);
                     if (ItemLists.Armors.Length < ind || ind < 1)
                     {
                         Console.WriteLine("| 아이템이 존재하지 않습니다! |"); break;
@@ -335,6 +348,7 @@ namespace TextRPG
                     }
                     ItemLists.Weapons[ind - 1].OnPurchased(GameManager.SelectedCharacter); break;
                 case ItemCategory.Consumable:
+                    foreach(string line in Miscs.PotionDesign) Console.WriteLine(line);
                     if (ItemLists.Consumables.Length < ind || ind < 1)
                     {
                         Console.WriteLine("| 아이템이 존재하지 않습니다! |"); break;
@@ -389,6 +403,7 @@ namespace TextRPG
             while (true)
             {
                 Console.Clear();
+                foreach (string line in Miscs.Quest) Console.WriteLine(line);
                 UIManager.QuestUI();
                 if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
                 else if (opt < 1 || opt > 6) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
@@ -481,7 +496,7 @@ namespace TextRPG
         private void InTown()
         {
             Console.Clear();
-
+            foreach (string line in Miscs.Town) Console.WriteLine(line);
             UIManager.BaseUI(GameManager.SelectedCharacter, "The Town of Adventurers", typeof(IdleOptions));
 
             if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); return; }
@@ -506,6 +521,7 @@ namespace TextRPG
         /// </summary>
         private void InDungeon()
         {
+            
             // Check for Quota completion
             if (GameManager.KilledMonsterCount >= GameManager.Quota)
             {
@@ -514,19 +530,18 @@ namespace TextRPG
 
             // Print UI of Kill Count and Player Options
             Console.Clear();
+            if (GameManager.GroundLevel < 50)
+            {
+                foreach (string line in Miscs.EasyEntrance) Console.WriteLine(line);
+            }
+            else
+            {
+                foreach (string line in Miscs.HardEntrance) Console.WriteLine(line);
+            }
             int[] pathOptions = RandomPathOption();
             UIManager.KillCountUI(GameManager.KilledMonsterCount, GameManager.Quota);
             UIManager.DungeonUI(GameManager.SelectedCharacter, GameManager, pathOptions);
 
-            // TODO: Insert Dungeon Path UI
-
-            Random rand = new Random();
-            int index = rand.Next(Miscs.path.Length);
-
-            foreach (string line in Miscs.path[index].Split('\n'))
-            {
-                Console.WriteLine(line);
-            }
             // Try parsing, if successed clamp Parsed Input
             if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); return; }
             else if (opt < 1 || opt > (pathOptions.Length + Enum.GetValues(typeof(DungeonOptions)).Length - 4)) { Console.WriteLine("| 잘못된 입력입니다! |"); return; }
@@ -545,11 +560,12 @@ namespace TextRPG
         /// <returns></returns>
         private int[] RandomPathOption()
         {
-            int random = new Random().Next(0, 7);
-            while(random == GameManager.prevPath) { random = new Random().Next(0, 7); }
+            int random = new Random().Next(0, Miscs.path.Length);
+            while(random == GameManager.prevPath) { random = new Random().Next(0, Miscs.path.Length); }
             GameManager.prevPath = random;
-            
-            // TODO: Print Path UI
+
+            string path = Miscs.path[random];
+            Console.WriteLine($"{path}");
 
             return random switch
             {
@@ -608,8 +624,7 @@ namespace TextRPG
             switch ((BattleOptions)Math.Clamp(opt - 1, 0, Enum.GetValues(typeof(BattleOptions)).Length - 1))
             {
                 case BattleOptions.Attack: if (!InBattle_Attack()) return; break;
-                case BattleOptions.Skill: 
-                    if (!InBattle_Skill()) return; break;
+                case BattleOptions.Skill: if (!InBattle_Skill()) return; break;
                 case BattleOptions.Inventory: InInventory(); return;
                 case BattleOptions.Status: InStatus(); return;
                 case BattleOptions.Escape:
@@ -629,9 +644,9 @@ namespace TextRPG
             // Monster Attack Mechanism
             foreach (Monster monster in SpawnManager.spawnedMonsters)
             {
-                if (monster.AttackType == AttackType.Close) GameManager.SelectedCharacter.OnDamage(AttackType.Close, monster.AttackStat.Attack);
-                else if (monster.AttackType == AttackType.Long) GameManager.SelectedCharacter.OnDamage(AttackType.Long, monster.AttackStat.RangeAttack);
-                else GameManager.SelectedCharacter.OnDamage(AttackType.Magic, monster.AttackStat.MagicAttack);
+                if (monster.AttackType == AttackType.Close) GameManager.SelectedCharacter.OnDamage(AttackType.Close, monster.AttackStat.Attack, false);
+                else if (monster.AttackType == AttackType.Long) GameManager.SelectedCharacter.OnDamage(AttackType.Long, monster.AttackStat.RangeAttack, false);
+                else GameManager.SelectedCharacter.OnDamage(AttackType.Magic, monster.AttackStat.MagicAttack, false);
             }
 
             GameManager.CurrentTurn++;
@@ -662,10 +677,10 @@ namespace TextRPG
                 AttackType? type = GameManager.SelectedCharacter.EquippedWeapon?.AttackType;
                 switch (type)
                 {
-                    case AttackType.Close: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Close, GameManager.SelectedCharacter.AttackStat.Attack); break;
-                    case AttackType.Long: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Long, GameManager.SelectedCharacter.AttackStat.RangeAttack); break;
-                    case AttackType.Magic: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Magic, GameManager.SelectedCharacter.AttackStat.MagicAttack); break;
-                    default: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Close, GameManager.SelectedCharacter.AttackStat.Attack); break;
+                    case AttackType.Close: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Close, GameManager.SelectedCharacter.AttackStat.Attack, false); break;
+                    case AttackType.Long: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Long, GameManager.SelectedCharacter.AttackStat.RangeAttack, false); break;
+                    case AttackType.Magic: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Magic, GameManager.SelectedCharacter.AttackStat.MagicAttack, false); break;
+                    default: SpawnManager.spawnedMonsters.ElementAt(opt - 1).OnDamage(AttackType.Close, GameManager.SelectedCharacter.AttackStat.Attack, false); break;
                 }
             }
             return true;
@@ -712,7 +727,6 @@ namespace TextRPG
                     }
                     return isSuccess;
                 }
-                    
 
                 UIManager.ShowMonsterList(SpawnManager);
                 int monsterOpt;
