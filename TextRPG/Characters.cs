@@ -109,7 +109,7 @@ namespace TextRPG
         public List<Weapon> Weapons { get; set; } = new List<Weapon>();
         public List<Consumables> Consumables { get; set; } = new List<Consumables>();
         public List<Skill> Skills { get; set; } = new List<Skill>();
-        public List<ImportantItem> ImportantItems { get; set; } = new List<ImportantItem>();
+        public LinkedList<ImportantItem> ImportantItems { get; set; } = new LinkedList<ImportantItem>();
 
         public Armor?[] EquippedArmor { get; set; } = new Armor[Enum.GetValues(typeof(ArmorPosition)).Length];
         public Weapon? EquippedWeapon { get; set; } = null;
@@ -197,12 +197,8 @@ namespace TextRPG
                 }
             }
 
-            AttackStat += new AttackStat(newAtkStat.Attack * 0.15f,
-                                         newAtkStat.RangeAttack * 0.15f,
-                                         newAtkStat.MagicAttack * 0.15f);
-            DefendStat += new DefendStat(newDefStat.Defend * 0.15f,
-                                         newDefStat.RangeDefend * 0.15f,
-                                         newDefStat.MagicDefend * 0.15f);
+            AttackStat += new AttackStat(newAtkStat + 1.25f);
+            DefendStat += new DefendStat(newDefStat + 1.25f);
         }
 
         /// <summary>
@@ -221,10 +217,28 @@ namespace TextRPG
                 damage *= CriticalHitDamagePercentage;
                 sb.Append($"치명적인 공격에 맞아");
             }
+
+            // Calculate the defend stat of character
+            DefendStat newDefendStat = new(DefendStat);
+            foreach(var item in EquippedArmor) { if (item != null) newDefendStat += item.DefendStat; }
+            foreach(var item in GameManager.Exposables)
+            {
+                if(item is DefendBuffPotion defpotion) { newDefendStat += defpotion.DefendStat; }
+                else if (item is AllBuffPotion allBuffPotion) { newDefendStat += allBuffPotion.DefendStat; }
+            }
+            foreach(var skill in Skills)
+            {
+                if (skill is BuffSkill buffSkill)
+                {
+                    if (buffSkill.Name.Equals("명상") && buffSkill.IsActive) { newDefendStat *= buffSkill.Coefficient; }
+                }
+            }
+            
+            // Calculated damage
             float calculatedDamage =
-                type == AttackType.Close ? Math.Max(1f, damage * (1f - DefendStat.Defend / 100f)) :
-                (type == AttackType.Long ? Math.Max(1f, damage * (1f - DefendStat.RangeDefend / 100f)) :
-                Math.Max(1f, damage * (1f - DefendStat.MagicDefend / 100f)));
+                type == AttackType.Close ? Math.Max(1f, damage * (1f - newDefendStat.Defend / 100f)) :
+                (type == AttackType.Long ? Math.Max(1f, damage * (1f - newDefendStat.RangeDefend / 100f)) :
+                Math.Max(1f, damage * (1f - newDefendStat.MagicDefend / 100f)));
 
             sb.Append($" {calculatedDamage:F2}의 데미지를 받았습니다! |");
             Console.WriteLine(sb.ToString());
@@ -326,7 +340,7 @@ namespace TextRPG
         public Warrior(string name, float maxHealth, float health, float maxMagicPoint, float magicPoint,
             int criticalHitChance, float criticalHitDamagePercentage, int level,
             AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive,
-            List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, List<ImportantItem> importantItems, List<Skill> skills,
+            List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, LinkedList<ImportantItem> importantItems, List<Skill> skills,
             Armor?[] equippedArmor, Weapon? equippedWeapon)
             : base(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
         {
@@ -334,7 +348,7 @@ namespace TextRPG
             Armors = armors ?? new List<Armor>();
             Weapons = weapons ?? new List<Weapon>();
             Consumables = consumables ?? new List<Consumables>();
-            ImportantItems = importantItems ?? new List<ImportantItem>();
+            ImportantItems = importantItems ?? new LinkedList<ImportantItem>();
             Skills = skills ?? new List<Skill>();
             EquippedArmor = equippedArmor ?? new Armor[Enum.GetValues(typeof(ArmorPosition)).Length];
             EquippedWeapon = equippedWeapon;
@@ -365,7 +379,7 @@ namespace TextRPG
         public Wizard(string name, float maxHealth, float health, float maxMagicPoint,
             float magicPoint, int criticalHitChance, float criticalHitDamagePercentage, int level,
             AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive,
-            List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, List<ImportantItem> importantItems, List<Skill> skills,
+            List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, LinkedList<ImportantItem> importantItems, List<Skill> skills,
             Armor?[] equippedArmor, Weapon? equippedWeapon)
             : base(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
         {
@@ -374,7 +388,7 @@ namespace TextRPG
             Armors = armors ?? new List<Armor>();
             Weapons = weapons ?? new List<Weapon>();
             Consumables = consumables ?? new List<Consumables>();
-            ImportantItems = importantItems ?? new List<ImportantItem>();
+            ImportantItems = importantItems ?? new LinkedList<ImportantItem>();
             Skills = skills ?? new List<Skill>();
             EquippedArmor = equippedArmor ?? new Armor[Enum.GetValues(typeof(ArmorPosition)).Length];
             EquippedWeapon = equippedWeapon;
@@ -405,7 +419,7 @@ namespace TextRPG
         public Archer(string name, float maxHealth, float health, float maxMagicPoint,
             float magicPoint, int criticalHitChance, float criticalHitDamagePercentage, int level,
             AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive,
-            List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, List<ImportantItem> importantItems, List<Skill> skills,
+            List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, LinkedList<ImportantItem> importantItems, List<Skill> skills,
             Armor?[] equippedArmor, Weapon? equippedWeapon)
             : base(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
         {
@@ -414,7 +428,7 @@ namespace TextRPG
             Armors = armors ?? new List<Armor>();
             Weapons = weapons ?? new List<Weapon>();
             Consumables = consumables ?? new List<Consumables>();
-            ImportantItems = importantItems ?? new List<ImportantItem>();
+            ImportantItems = importantItems ?? new LinkedList<ImportantItem>();
             Skills = skills ?? new List<Skill>();
             EquippedArmor = equippedArmor ?? new Armor[Enum.GetValues(typeof(ArmorPosition)).Length];
             EquippedWeapon = equippedWeapon;

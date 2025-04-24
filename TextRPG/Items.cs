@@ -32,6 +32,11 @@ namespace TextRPG
             magicAttack = attackStat.MagicAttack;
         }
 
+        public static AttackStat operator +(AttackStat stat, float coef)
+        {
+            return new AttackStat(stat.Attack + coef, stat.RangeAttack + coef, stat.MagicAttack + coef);
+        }
+
         public static AttackStat operator +(AttackStat stat1, AttackStat stat2)
         {
             return new AttackStat(stat1.Attack + stat2.Attack, stat1.RangeAttack + stat2.RangeAttack, stat1.MagicAttack + stat2.MagicAttack);
@@ -82,6 +87,11 @@ namespace TextRPG
             defend = defendStat.Defend;
             rangeDefend = defendStat.RangeDefend;
             magicDefend = defendStat.MagicDefend;
+        }
+
+        public static DefendStat operator +(DefendStat stat, float coef)
+        {
+            return new DefendStat(stat.Defend + coef, stat.RangeDefend + coef, stat.MagicDefend + coef);
         }
 
         public static DefendStat operator +(DefendStat stat1, DefendStat stat2)
@@ -161,7 +171,6 @@ namespace TextRPG
             if (character.EquippedArmor[(int)(ArmorPosition)] != null) { character.EquippedArmor[(int)(ArmorPosition)].OnUnequip(character); }
             character.EquippedArmor[(int)(ArmorPosition)] = this;
             IsEquipped = true;
-            character.DefendStat += DefendStat;
             Console.WriteLine($"| {name} equipped! |");
         }
 
@@ -174,7 +183,6 @@ namespace TextRPG
             if (!IsEquipped) { Console.WriteLine($"| {Name} is not equipped! |"); return; }
             character.EquippedArmor[(int)ArmorPosition] = null;
             IsEquipped = false;
-            character.DefendStat -= DefendStat;
             Console.WriteLine($"| {name} unequipped! |");
         }
 
@@ -185,7 +193,7 @@ namespace TextRPG
         public virtual void OnPurchase(Character character)
         {
             if (character.Currency < Price) { Console.WriteLine("| Not enough Money! |"); return; }
-            Console.WriteLine($"| {name}을 구매하였습니다! |"); 
+            Console.WriteLine($"| {name}을 구매하였습니다! |");
         }
 
         /// <summary>
@@ -233,6 +241,12 @@ namespace TextRPG
               .Append($"MDef. : {DefendStat.MagicDefend:F2} | ")
               .Append($"가격 : {Price} | {Rarity}");
             return sb.ToString();
+        }
+
+        public override bool Equals(object? obj)
+        {
+            if(obj is Armor armor) return Name == armor.Name;
+            return false;
         }
     }
     /// <summary>
@@ -525,7 +539,6 @@ namespace TextRPG
             if (character.EquippedWeapon != null) { character.EquippedWeapon?.OnUnequip(character); }
             character.EquippedWeapon = this;
             IsEquipped = true;
-            character.AttackStat += AttackStat;
             Console.WriteLine($"| {name} equipped! |");
         }
 
@@ -538,7 +551,6 @@ namespace TextRPG
             if (!IsEquipped) { Console.WriteLine($"| {Name} is not equipped! |"); return; }
             character.EquippedWeapon = null;
             IsEquipped = false;
-            character.AttackStat -= AttackStat;
             Console.WriteLine($"| {name} unequipped! |");
         }
 
@@ -558,6 +570,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public void OnSell(Character character)
         {
+            if(IsEquipped) { Console.WriteLine($"| Not possible to sell!, {Name} is equipped! |"); return; }
             character.Currency += Price;
             character.Weapons.Remove(this);
             Console.WriteLine($"| {Name} is sold! |");
@@ -578,9 +591,20 @@ namespace TextRPG
         /// <param name="character"></param>
         public void OnDropped(Character character)
         {
-            if (IsEquipped) { Console.WriteLine($"| {Name} is equipped! |"); return; }
+            if (IsEquipped) { Console.WriteLine($"| Not possible to drop!, {Name} is equipped! |"); return; }
             character.Weapons.Remove(this);
             Console.WriteLine($"| Dropped {name}! |");
+        }
+
+        /// <summary>
+        /// Compare the weapon with another object
+        /// </summary>
+        /// <param name="obj"></param>
+        /// <returns></returns>
+        public override bool Equals(object? obj)
+        {
+            if(obj is Weapon weapon) return Name == weapon.Name;
+            return false;
         }
     }
     /// <summary>
@@ -803,9 +827,9 @@ namespace TextRPG
         /// It removes all buffs from the character given by this item.
         /// </summary>
         /// <param name="character"></param>
-        public virtual void OnDeBuffed(Character character)
+        public void OnDeBuffed(Character character)
         {
-            Console.WriteLine("| All Buffs Removed! |");
+            Console.WriteLine($"| {Name}의 효과가 사라졌습니다! |");
         }
 
         /// <summary>
@@ -1011,13 +1035,6 @@ namespace TextRPG
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
-            character.AttackStat += AttackStat;
-        }
-
-        public override void OnDeBuffed(Character character)
-        {
-            base.OnDeBuffed(character);
-            character.AttackStat -= AttackStat;
         }
 
         /// <summary>
@@ -1095,13 +1112,6 @@ namespace TextRPG
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
-            character.DefendStat += DefendStat;
-        }
-
-        public override void OnDeBuffed(Character character)
-        {
-            base.OnDeBuffed(character);
-            character.DefendStat -= DefendStat;
         }
 
         /// <summary>
@@ -1183,15 +1193,6 @@ namespace TextRPG
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
-            character.AttackStat += AttackStat;
-            character.DefendStat += DefendStat;
-        }
-
-        public override void OnDeBuffed(Character character)
-        {
-            base.OnDeBuffed(character);
-            character.AttackStat -= AttackStat;
-            character.DefendStat -= DefendStat;
         }
 
         /// <summary>
@@ -1292,7 +1293,7 @@ namespace TextRPG
         public override void OnPicked(Character character)
         {
             base.OnPicked(character);
-            character.ImportantItems.Add(new GoblinEar(this));
+            character.ImportantItems.AddLast(new GoblinEar(this));
             var quests = QuestManager.GetContractedQuests_CollectItem(GetType().Name);
             foreach (var quest in quests) { quest.OnProgress(character); }
         }
@@ -1317,7 +1318,7 @@ namespace TextRPG
         public override void OnPicked(Character character)
         {
             base.OnPicked(character);
-            character.ImportantItems.Add(new GoblinEye(this));
+            character.ImportantItems.AddLast(new GoblinEye(this));
             var quests = QuestManager.GetContractedQuests_CollectItem(GetType().Name);
             foreach (var quest in quests) { quest.OnProgress(character); }
         }

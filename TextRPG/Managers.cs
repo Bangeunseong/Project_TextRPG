@@ -8,12 +8,18 @@ namespace TextRPG
     /// </summary>
     static class UIManager
     {
+        /// <summary>
+        /// Show Game Start UI
+        /// </summary>
         public static void StartUI()
         {
             foreach (string line in Miscs.GameStart) Console.WriteLine(line);
-            Console.ReadKey();
+            Console.Write("\nPress enter to continue..."); Console.ReadLine();
         }
 
+        /// <summary>
+        /// Show Character Selection UI
+        /// </summary>
         public static void JobSelectionUI()
         {
             Console.WriteLine();
@@ -22,6 +28,10 @@ namespace TextRPG
             Console.Write("원하는 직업을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Inventory UI
+        /// </summary>
+        /// <param name="character"></param>
         public static void InventoryUI(Character character)
         {
             foreach (string line in Miscs.Inventory) Console.WriteLine(line);
@@ -44,6 +54,9 @@ namespace TextRPG
             Console.Write("원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Inventory UI - Item Selection
+        /// </summary>
         public static void InventoryUI_Equipment()
         {
             Console.WriteLine("\n| ----- \"장비\" ----- |");
@@ -54,6 +67,9 @@ namespace TextRPG
             Console.Write("원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Inventory UI - Item Selection
+        /// </summary>
         public static void InventoryUI_Consumable()
         {
             Console.WriteLine("\n| ----- \"소모품\" ----- |");
@@ -62,6 +78,9 @@ namespace TextRPG
             Console.Write("원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Inventory UI - Miscellaneous
+        /// </summary>
         public static void InventoryUI_Misc()
         {
             Console.WriteLine("\n| ----- \"잡동사니\" ----- |");
@@ -70,6 +89,10 @@ namespace TextRPG
             Console.Write("원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Shop UI
+        /// </summary>
+        /// <param name="character"></param>
         public static void ShopUI(Character character)
         {
             Console.WriteLine("| ----- Welcome to Henry's Shop! ----- |");
@@ -85,7 +108,11 @@ namespace TextRPG
             Console.Write("\n원하는 기능을 선택하세요 : ");
         }
 
-        public static void ShowShopList(ItemCategory category)
+        /// <summary>
+        /// Show Shop List UI
+        /// </summary>
+        /// <param name="category"></param>
+        public static void ShowShopList(Character character, ItemCategory category)
         {
             Console.WriteLine("\n| ----- 아이템 구매 ----- |");
             switch (category)
@@ -94,24 +121,39 @@ namespace TextRPG
                     foreach (string line in Miscs.ArmorDesign) Console.WriteLine(line);
                     Console.WriteLine("| \"방어구\" |");
                     int i = 1;
-                    foreach (Armor armor in ItemLists.Armors) { Console.WriteLine($"{i++}. {armor}"); }
+                    foreach (Armor armor in ItemLists.Armors) { 
+                        if(character.Armors.Contains(armor)) Console.ForegroundColor = ConsoleColor.Yellow;
+                        else Console.ResetColor();
+                        Console.WriteLine($"{i++}. {armor}");
+                    }
                     break;
                 case ItemCategory.Weapon:
                     foreach (string line in Miscs.WeaponDesign) Console.WriteLine(line);
                     Console.WriteLine("| \"무기\" |");
                     i = 1;
-                    foreach (Weapon weapon in ItemLists.Weapons) { Console.WriteLine($"{i++}. {weapon}"); }
+                    foreach (Weapon weapon in ItemLists.Weapons) {
+                        if (character.Weapons.Contains(weapon)) Console.ForegroundColor = ConsoleColor.Yellow;
+                        else Console.ResetColor();
+                        Console.WriteLine($"{i++}. {weapon}"); 
+                    }
                     break;
                 case ItemCategory.Consumable:
                     foreach (string line in Miscs.PotionDesign) Console.WriteLine(line);
                     Console.WriteLine("| \"포션\" |");
                     i = 1;
-                    foreach (Consumables potion in ItemLists.Consumables) { Console.WriteLine($"{i++}. {potion}"); }
+                    foreach (Consumables potion in ItemLists.Consumables) {
+                        Console.WriteLine($"{i++}. {potion}"); 
+                    }
                     break;
             }
+            Console.ResetColor();
             Console.Write("\n구매할 상품 번호 입력 (취소하려면 0을 입력하세요) : ");
         }
 
+        /// <summary>
+        /// Show Item List UI
+        /// </summary>
+        /// <param name="character"></param>
         public static void ShowItemList(Character character)
         {
             Console.WriteLine("\n| ----- 아이템 판매 ----- |");
@@ -131,6 +173,10 @@ namespace TextRPG
             Console.Write("\n무엇을 판매하겠습니까? ( Type [ Category,Index ], 취소하려면 exit을 입력하세요) : ");
         }
 
+        /// <summary>
+        /// Show Skill List UI
+        /// </summary>
+        /// <param name="character"></param>
         public static void ShowSkillList(Character character)
         {
             int i = 1;
@@ -140,29 +186,40 @@ namespace TextRPG
             Console.Write("\n원하는 스킬을 고르세요 (취소하려면 0을 입력하세요) : ");
         }
 
-        public static void ShowMonsterList(SpawnManager spawnManager)
+        /// <summary>
+        /// Show Monster List UI
+        /// </summary>
+        public static void ShowMonsterList()
         {
             Console.WriteLine("\n| ----- Battle ----- |");
             Console.WriteLine("| \"몬스터\" |");
             int i = 1;
-            foreach (Monster monster in spawnManager.spawnedMonsters)
+            foreach (Monster monster in SpawnManager.spawnedMonsters)
                 Console.WriteLine($"| {i++}. {monster.Name} | HP : {monster.Health} |");
             Console.WriteLine("| ------------------ |");
             Console.Write("\n공격할 몬스터를 선택하세요 (취소하려면 0을 입력하세요) : ");
         }
 
-        public static void CabinUI()
+        /// <summary>
+        /// Show Cabin UI
+        /// </summary>
+        /// <param name="character"></param>
+        public static void CabinUI(Character character)
         {
             Console.WriteLine("| ----- Welcome to Alby's Cabin! ----- |");
             foreach (string line in Miscs.Alby) Console.WriteLine(line);
-            Console.WriteLine("\n| 1. 뒤로가기 |");
-            Console.WriteLine("| 2. 스탠다드 룸 (최대 체력 25% 회복, 40G) |");
-            Console.WriteLine("| 3. 디럭스 룸 (최대 체력 50% 회복, 60G) |");
-            Console.WriteLine("| 4. 스위트 룸 (최대 체력 75% 회복, 80G)");
             Console.WriteLine("| ------------------------------------ |");
+            Console.WriteLine($"\n| Gold : {character.Currency} |");
+            Console.WriteLine("| 1. 뒤로가기 |");
+            Console.WriteLine("| 2. 스탠다드 룸 (최대 체력 25% 회복, 40G) |");
+            Console.WriteLine("| 3. 디럭스 룸 (최대 체력 50% 회복, 60G)   |");
+            Console.WriteLine("| 4. 스위트 룸 (최대 체력 75% 회복, 80G)   |");
             Console.Write("\n룸 옵션을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Quest UI
+        /// </summary>
         public static void QuestUI()
         {
             Console.WriteLine("| ----- Welcome to Adventurers' Guild ----- |");
@@ -177,6 +234,9 @@ namespace TextRPG
             Console.Write("\n원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Quest Selection UI
+        /// </summary>
         public static void QuestUI_Contract()
         {
             var questList = QuestManager.GetContractableQuests();
@@ -189,18 +249,27 @@ namespace TextRPG
             Console.Write("\nQuest를 선택하세요 : ");
         }
 
-        public static void QuestUI_Complete()
+        /// <summary>
+        /// Show Quest Completion UI
+        /// </summary>
+        /// <returns></returns>
+        public static bool QuestUI_Complete()
         {
             var questList = QuestManager.GetCompletableQuests();
             Console.WriteLine("\n| ----- 완료 가능한 Quest 목록 ----- |");
-            if (questList == null) { Console.WriteLine("| 완료 가능한 Quest가 없습니다! |"); return; }
+            if (questList == null || questList.Count() < 1) { Console.WriteLine("| 완료 가능한 Quest가 없습니다! |"); return false; }
 
             foreach (var quest in questList)
                 if (quest is KillMonsterQuest) Console.WriteLine($"{((KillMonsterQuest)quest).ToString()}");
                 else if (quest is CollectItemQuest) Console.WriteLine($"{((CollectItemQuest)quest).ToString()}");
             Console.Write("\nQuest를 선택하세요: ");
+            return true;
         }
 
+        /// <summary>
+        /// Show Character Status UI
+        /// </summary>
+        /// <param name="character"></param>
         public static void StatusUI(Character character)
         {
             if (character is Warrior)
@@ -218,31 +287,50 @@ namespace TextRPG
             Console.WriteLine("| ----- \"캐릭터 정보\" ----- |");
             Console.WriteLine($"\n| \"Name\" : {character.Name} |");
             Console.WriteLine($"| \"Lv {character.Level:D2}\" |");
-            Console.WriteLine($"| \"Exp\" : {character.Exp:F2} |");
+            Console.WriteLine($"| \"Exp\" : {(character.Exp - (character.Level - 1) * 100) % 100}/100 |");
             Console.WriteLine($"| \"HP\" : {character.Health:F2}/{character.MaxHealth} |");
             Console.WriteLine($"| \"MP\" : {character.MagicPoint:F2}/{character.MaxMagicPoint} |");
             Console.WriteLine($"| \"Gold\" : {character.Currency} |");
 
             Console.WriteLine("\n| ----- \"캐릭터 상세\" ----- |");
-            Console.WriteLine($"| \"Atk.\" : {character.AttackStat.Attack:F2} |");
-            Console.WriteLine($"| \"Range Atk.\" : {character.AttackStat.RangeAttack:F2} |");
-            Console.WriteLine($"| \"Magic Atk.\" : {character.AttackStat.MagicAttack:F2} |");
-            Console.WriteLine($"| \"Def.\" : {character.DefendStat.Defend:F2} |");
-            Console.WriteLine($"| \"Range Def.\" : {character.DefendStat.RangeDefend:F2} |");
-            Console.WriteLine($"| \"Magic Def.\" : {character.DefendStat.MagicDefend:F2} |");
+
+            AttackStat atkStat = new(0, 0, 0);
+            if(character.EquippedWeapon != null) atkStat += character.EquippedWeapon.AttackStat;
+            foreach (var item in GameManager.Exposables)
+            {
+                if (item is AttackBuffPotion atkPotion) atkStat += atkPotion.AttackStat;
+                else if (item is AllBuffPotion allPotion) atkStat += allPotion.AttackStat;
+            }
+
+            DefendStat defStat = new(0, 0, 0);
+            foreach(var armor in character.EquippedArmor) if(armor != null) { defStat += armor.DefendStat; }
+            foreach (var item in GameManager.Exposables)
+            {
+                if (item is DefendBuffPotion defPotion) defStat += defPotion.DefendStat;
+                else if (item is AllBuffPotion allPotion) defStat += allPotion.DefendStat;
+            }
+
+            Console.WriteLine($"| \"Atk.\" : {character.AttackStat.Attack:F2} + ({atkStat.Attack:F2}) |");
+            Console.WriteLine($"| \"Range Atk.\" : {character.AttackStat.RangeAttack:F2} + ({atkStat.RangeAttack:F2}) |");
+            Console.WriteLine($"| \"Magic Atk.\" : {character.AttackStat.MagicAttack:F2} + ({atkStat.MagicAttack:F2}) |");
+            Console.WriteLine($"| \"Def.\" : {character.DefendStat.Defend:F2} + ({defStat.Defend:F2}) |");
+            Console.WriteLine($"| \"Range Def.\" : {character.DefendStat.RangeDefend:F2} + ({defStat.RangeDefend:F2}) |");
+            Console.WriteLine($"| \"Magic Def.\" : {character.DefendStat.MagicDefend:F2} + ({defStat.MagicDefend:F2}) |");
 
             Console.WriteLine("\n| ----- \"장착한 방어구\" ----- |");
             foreach (Armor armor in character.Armors) { if (armor.IsEquipped) Console.WriteLine($"| {armor} |"); }
             Console.WriteLine("| ----- \"장착한 무기\" ----- |");
             foreach (Weapon weapon in character.Weapons) { if (weapon.IsEquipped) Console.WriteLine($"| {weapon} |"); }
-            Console.WriteLine("| ----- \"포션\" ----- |");
-            foreach (Consumables consumable in character.Consumables) { Console.WriteLine($"| {consumable} |"); }
-            Console.WriteLine("| ----- \"잡동사니\" ----- |");
-            foreach (ImportantItem item in character.ImportantItems) { Console.WriteLine($"| {item} |"); }
-            Console.WriteLine("\n| Press any key to continue... |");
-            Console.ReadKey();
+            Console.WriteLine("| ----- \" 보유 스킬 \" ----- |");
+            foreach(Skill skill in character.Skills) { Console.WriteLine($"| {skill.ToString()} |"); }
+            Console.Write("\nPress enter to continue..."); Console.ReadLine();
         }
 
+        /// <summary>
+        /// Show Kill Count UI
+        /// </summary>
+        /// <param name="KillCount"></param>
+        /// <param name="Quota"></param>
         public static void KillCountUI(int KillCount, int Quota)
         {
             Console.WriteLine("\n| --------------------------------------------- |");
@@ -250,13 +338,16 @@ namespace TextRPG
             Console.WriteLine("| ----------------------------------------------- |");
         }
 
-        public static void MonsterEncounterUI(SpawnManager spawnManager)
+        /// <summary>
+        /// Show Monster Encounter UI
+        /// </summary>
+        public static void MonsterEncounterUI()
         {
             StringBuilder sb = new();
 
             Console.WriteLine("\n| ---------------------------------- |");
             Console.ForegroundColor = ConsoleColor.Green;
-            foreach (Monster monster in spawnManager.spawnedMonsters)
+            foreach (Monster monster in SpawnManager.spawnedMonsters)
             {
                 sb.Append($"Lv {monster.Level}: ").Append(monster.Name).Append('\n');
 
@@ -280,20 +371,24 @@ namespace TextRPG
             Console.WriteLine("| ---------------------------------- |");
 
             Console.WriteLine($"\n| ---------- Warning! ---------- |");
-            Console.WriteLine($"| {spawnManager.spawnedMonsters.Count}마리의 몬스터가 나타났다! |");
+            Console.WriteLine($"| {SpawnManager.spawnedMonsters.Count}마리의 몬스터가 나타났다! |");
             Console.Write(sb.ToString());
-            Console.Write("\nPress any key to continue...");
-            Console.ReadKey();
+            Console.Write("\nPress enter to continue..."); Console.ReadLine();
         }
 
+        /// <summary>
+        /// Show No Monster Found UI
+        /// </summary>
         public static void NoMonsterFoundUI()
         {
             int ind = new Random().Next(Miscs.Quotes.Length);
             Console.WriteLine($"\n| 아무 일도 없었다..., {Miscs.Quotes[ind]}");
-            Console.WriteLine("Press any key to continue...");
-            Console.ReadKey();
+            Console.Write("\nPress enter to continue..."); Console.ReadLine();
         }
 
+        /// <summary>
+        /// Show Game Over UI
+        /// </summary>
         public static void GameOverUI()
         {
             Console.WriteLine();
@@ -302,6 +397,10 @@ namespace TextRPG
             Console.ResetColor();
         }
 
+        /// <summary>
+        /// Show Revive Option UI
+        /// </summary>
+        /// <param name="character"></param>
         public static void ReviveOptionUI(Character character)
         {
             Console.WriteLine($"\nGold : {character.Currency}");
@@ -317,6 +416,9 @@ namespace TextRPG
             }
         }
 
+        /// <summary>
+        /// Show Game Options UI
+        /// </summary>
         public static void GameOptionUI()
         {
             Console.WriteLine($"\n| ----- Game Options ----- |");
@@ -329,6 +431,9 @@ namespace TextRPG
             Console.Write("\n원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Setting Options UI
+        /// </summary>
         public static void SettingOptionUI()
         {
             Console.WriteLine($"\n| ----- 옵션 ----- |");
@@ -340,11 +445,16 @@ namespace TextRPG
             Console.Write("\n원하는 기능을 선택하세요 : ");
         }
 
-        public static void DungeonUI(Character character, GameManager gameManager, int[] pathOptions)
+        /// <summary>
+        /// Show Dungeon UI
+        /// </summary>
+        /// <param name="character"></param>
+        /// <param name="pathOptions"></param>
+        public static void DungeonUI(Character character, int[] pathOptions)
         {
-            Console.WriteLine($"\n| ----- 던전 Lv{gameManager.GroundLevel} ----- |");
+            Console.WriteLine($"\n| ----- 던전 Lv{GameManager.GroundLevel} ----- |");
             Console.WriteLine($"| 현재 시간 : {GameManager.GameTime} |");
-            Console.WriteLine($"| HP : {character.Health} | MP : {character.MagicPoint} |");
+            Console.WriteLine($"| HP : {character.Health:F2} | MP : {character.MagicPoint:F2} |");
             Console.WriteLine($"| Gold : {character.Currency} |");
             Console.WriteLine();
             for (int i = 1; i <= pathOptions.Length; i++)
@@ -358,11 +468,54 @@ namespace TextRPG
             Console.Write("\n원하는 기능을 선택하세요 : ");
         }
 
+        /// <summary>
+        /// Show Battle UI
+        /// </summary>
+        /// <param name="character"></param>
+        /// <param name="headLine"></param>
+        public static void BattleUI(Character character, string headLine)
+        {
+            Console.WriteLine($"\n| .:~:. {headLine} .:~:. |");
+            Console.WriteLine($"| 현재 시간 : {GameManager.GameTime} |");
+            Console.WriteLine($"| Lv : {character.Level} | Gold : {character.Currency} |");
+            Console.WriteLine($"| HP : {character.Health:F2} | MP : {character.MagicPoint:F2} |");
+
+            foreach(Skill skill in character.Skills)
+            {
+                if(skill is BuffSkill buffSkill && buffSkill.IsActive)
+                    Console.WriteLine($"| {buffSkill.Name} 효과의 남은 턴 ({GameManager.CurrentTurn - buffSkill.UsedTurn}/{buffSkill.TurnInterval}) | ");
+                
+            }
+
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:. |");
+            Console.WriteLine("| .:~:. 몬스터 정보 .:~:. |");
+            foreach(Monster monster in SpawnManager.spawnedMonsters)
+            {
+                float atkStat = monster.AttackType == AttackType.Close ? monster.AttackStat.Attack :
+                                (monster.AttackType == AttackType.Long ? monster.AttackStat.RangeAttack : monster.AttackStat.MagicAttack);
+                Console.WriteLine($"| Name : {monster.Name} | HP : {monster.Health:F2} | Atk : {atkStat} |");
+            }
+
+            Console.WriteLine();
+            int i = 1;
+            foreach (var opt in Enum.GetValues(typeof(BattleOptions)))
+            {
+                Console.WriteLine($"| {i++}. {opt} |");
+            }
+            Console.Write("\n원하는 기능을 선택하세요 : ");
+        }
+
+        /// <summary>
+        /// Show Base UI
+        /// </summary>
+        /// <param name="character"></param>
+        /// <param name="headLine"></param>
+        /// <param name="type"></param>
         public static void BaseUI(Character character, string headLine, Type type)
         {
             Console.WriteLine($"\n| ----- {headLine} ----- |");
             Console.WriteLine($"| 현재 시간 : {GameManager.GameTime} |");
-            Console.WriteLine($"| HP : {character.Health} | MP : {character.MagicPoint} |");
+            Console.WriteLine($"| HP : {character.Health:F2} | MP : {character.MagicPoint:F2} |");
             Console.WriteLine($"| Gold : {character.Currency} |");
             Console.WriteLine();
             int i = 1;
@@ -732,34 +885,41 @@ namespace TextRPG
 
         public static string[] Henry = new string[]
         {
-            @"        /     \        ",
-            @"       / (/@\) \       ",
-            @"   \__/_________\__/   ",
-            @"     |  O     O  |     ",
-            @"     |     ^     |     ",
-            @"     |   \___/   |     ",
-            @"      \_________/      ",
-            @"   ___/   |||   \___   ",
-            @" /`    \       /    `\ ",
-            @" \__.   |     |   .__/ ",
-            @"     \  |     |  /     ",
-            @"      \_|_____|_/      ",
+            @"              /     \              ",
+            @"             / (/@\) \             ",
+            @"         \__/_________\__/         ",
+            @"           |  O     O  |           ",
+            @"           |     ^     |           ",
+            @"           |   \___/   |           ",
+            @"            \_________/            ",
+            @"         ___/   |||   \___         ",
+            @"       /`    \       /    `\       ",
+            @"       \__.   |     |   .__/       ",
+            @"           \  |     |  /           ",
+            @"            \_|_____|_/            ",
+            @"                                   ",
+            "  자네! 지금 강해지고 싶어서 왔는가!?  ",
+            "  하하하! 잘 찾아왔구만! 한번 골라봐~  ",
+            "    많이 사면 싼 가격에 쳐출테니~     ",
         };
 
         public static string[] Alby = new string[]
         {
-            @"        /     \        ",
-            @"       / -(+)- \       ",
-            @"    __/_________\__    ",
-            @"   / |  O     O  | \   ",
-            @"     |     ^     |     ",
-            @"     |   '---'   |     ",
-            @"      \_________/      ",
-            @"   ___/   |||   \___   ",
-            @" /`    \       /    `\ ",
-            @" \__.   |     |   .__/ ",
-            @"     \  |     |  /     ",
-            @"      \_|_____|_/      ",
+            @"             /     \             ",
+            @"            / -(+)- \            ",
+            @"         __/_________\__         ",
+            @"        / |  O     O  | \        ",
+            @"          |     ^     |          ",
+            @"          |   '---'   |          ",
+            @"           \_________/           ",
+            @"        ___/   |||   \___        ",
+            @"      /`    \       /    `\      ",
+            @"      \__.   |     |   .__/      ",
+            @"          \  |     |  /          ",
+            @"           \_|_____|_/           ",
+            " 어머~ 오셨군요~? 오랜만에 오셨어요~ ",
+            "    늘 하던 스위트룸으로~? 농담~    ",
+            "  오늘은 어떤방으로 안내해드릴까요~? ",
         };
 
         public static string[] GameStart = new string[]
@@ -806,7 +966,7 @@ namespace TextRPG
             |                                                                         CHO_YUNJAE  | 
             |                                                                        PARK_JIHWAN  | 
             |                                                                        KIM_KONGSIK  | 
-            |                                                                      BANG_EUNSEONG  | 
+            |                                                               ★ MVP  BANG_EUNSEONG  | 
             |                                                                                     | 
             +=====================================================================================+"
         };
@@ -968,7 +1128,7 @@ namespace TextRPG
             |     _.-=-.     ____  ____  ____|            '   ||  /\   \/\   \/\   \/\   \     |
             |               /\   \/\   \/\   \     .           | /  \___\ \___\ \___\ \___\    |
             |              /  \___\ \___\ \___\  ┌──────────┐  | \  /   / /   / /   / /   /    |
-            |              \  /   / /   / /   /  │ 1. FRONT │  |  \/___/\/___/\/___/\/___/     |
+            |              \  /   / /   / /   /  │1.FORWARD │  |  \/___/\/___/\/___/\/___/     |
             |               \/___/\/___/\/___/   └──────────┘  ||                              |
             |                                 |                 |    _.-=-._                   |
             |                                ||                 |                              |
@@ -1002,7 +1162,7 @@ namespace TextRPG
             |        ,                                  |||                            \/      |
             |                                      .       |||       /\ /\ /\                  |
             |                 ,            ┌─────────┐       ||     O  O  O  O                 |
-            |||                            │ 1. LEFT │         ||    \/ \/ \ /\ /\             |
+            |||                            │1. LEFT  │         ||    \/ \/ \ /\ /\             |
             | |||| |||| ||||           .   └─────────┘          |           O  O  O            |
             |     |          ||||||                         .    |           \/ \/             |
             |                     || ||                           |                            |
@@ -1032,7 +1192,7 @@ namespace TextRPG
             |                *                                   |||||                         | 
             |                         *                     ||||                              || 
             |     *                                      |||    ┌──────────┐                |||| 
-            |                 *                       |||       │ 1. RIGHT │             |||   | 
+            |                 *                       |||       │1. RIGHT  │             |||   | 
             |                                      |||          └──────────┘       | |||       | 
             |                                    ||                            |||             | 
             |                                   |                          |||                 | 
@@ -1062,7 +1222,7 @@ namespace TextRPG
             +==================================================================================+
             |                       -+         |   .           .     | ____|____|____|____|__| |
             |                                  ||   ┌────────────┐   | __|____|____|____|____| |
-            |         -+H+-                     |   │ 2. FORWARD │   |  _________________ |__| |
+            |         -+H+-                     |   │1. FORWARD  │   |  _________________ |__| |
             |                                    |  └────────────┘     |____|____|____|__|__ __|
             |                                    |                    ||__|____|____|____||_|__|
             ||||                       -+H+     ||              .     ||____|____|____|__|__|__|
@@ -1072,7 +1232,7 @@ namespace TextRPG
             |                          ||||||||  |             .      ||____|____|____|__|__|__|
             |     .                           |||    ,              |  _________________ _|_|__|
             |           ┌─────────┐   ,                        .    | |____|____|____|__|__ __ |
-            |        ,  │ 1. LEFT │                 .                ||__|____|____|____||_|__||
+            |        ,  │2. LEFT  │                 .                ||__|____|____|____||_|__||
             |           └─────────┘                                  ||____|____|____|__|__|__||
             |                 ,                                     |______________________|__||
             |||                                .                   ||____|____|____|____| _|__||
@@ -1093,11 +1253,11 @@ namespace TextRPG
             @"
             +==================================================================================+
             |                            ||                   ||    .oO         ||||           |
-            |        *       *            |   ┌ ───────────┐   |           ||||||              |
-            |              *              |   │ 2. FORWARD │  ||      ||||||                   |
-            |                             |   └ ───────────┘   |   ||||                        |
+            |        *       *            |   ┌───────────┐    |           ||||||              |
+            |              *              |   │1. FORWARD │   ||      ||||||                   |
+            |                             |   └───────────┘    |   ||||                        |
             |                            |                     | ||      ┌──────────┐          |
-            |                         *  |                      ||       │ 1. RIGHT │          |
+            |                         *  |                      ||       │2. RIGHT  │          |
             |                            ||                              └──────────┘          |
             |          *                  |                                                    |
             |                             |                                                  |||
@@ -1163,7 +1323,7 @@ namespace TextRPG
             |         *                             ||                 ||             -+H+     |
             |                                     * |             .    |                       |
             |                            *         ||  ┌──────────┐   |                        |
-            ||                   |                 |   │ 1. FRONT │  ||                     ||||
+            ||                   |                 |   │1.FORWARD │  ||                     ||||
             | |||||      |||||||   |||            ||   └──────────┘ ||             |     |||   |
             |      || |              |||||||| |||| |                |         |||||  |||||     |
             |                                                      ||||||||||||                |
@@ -1231,7 +1391,7 @@ namespace TextRPG
     /// <summary>
     /// Manage quests
     /// </summary>
-    class QuestManager
+    static class QuestManager
     {
         // Methods
         /// <summary>
@@ -1255,7 +1415,7 @@ namespace TextRPG
         public static IEnumerable<KillMonsterQuest> GetContractedQuests_KillMonster()
         {
             var contracted = from quest in Quests
-                             where quest.IsContracted == true && quest.IsCompleted == false && quest.QuestType == QuestType.KillMonster
+                             where quest.IsContracted == true && quest.IsCompleted == false && quest is KillMonsterQuest
                              select (KillMonsterQuest)quest;
             return contracted;
         }
@@ -1333,13 +1493,10 @@ namespace TextRPG
     /// <summary>
     /// Manage spawning monsters
     /// </summary>
-    class SpawnManager
+    static class SpawnManager
     {
-        // Property
-        public LinkedList<Monster> spawnedMonsters = new();
-
-        // Constructor
-        public SpawnManager() { }
+        // Field
+        public static LinkedList<Monster> spawnedMonsters = new();
 
         // Public Methods
         /// <summary>
@@ -1347,12 +1504,13 @@ namespace TextRPG
         /// </summary>
         /// <param name="character"></param>
         /// <param name="groundLevel"></param>
-        public void SpawnMonsters(Character character, int groundLevel)
+        public static void SpawnMonsters(Character character, int groundLevel)
         {
+            Random random = new Random();
             int count = new Random().Next(1, 5);
             for (int i = 0; i < count; i++)
             {
-                int type = new Random().Next(MonsterLists.monsters.Length);
+                int type = random.Next(MonsterLists.monsters.Length);
 
                 if (MonsterLists.monsters[type].AttackType == AttackType.Close)
                 {
@@ -1379,12 +1537,12 @@ namespace TextRPG
         /// Get all spawned monsters
         /// </summary>
         /// <returns>Returns spawned monster count</returns>
-        public int GetMonsterCount() { return spawnedMonsters.Count; }
+        public static int GetMonsterCount() { return spawnedMonsters.Count; }
 
         /// <summary>
         /// Remove all spawned monsters
         /// </summary>
-        public void RemoveAllMonsters() 
+        public static void RemoveAllMonsters() 
         {
             var monster = spawnedMonsters.First;
             while(monster != null)
@@ -1403,15 +1561,11 @@ namespace TextRPG
         /// <param name="character"></param>
         /// <param name="groundLevel"></param>
         /// <param name="currency"></param>
-        private void SetMonster(Monster monster, Character character, int groundLevel, int currency)
+        private static void SetMonster(Monster monster, Character character, int groundLevel, int currency)
         {
             monster.Level = groundLevel;
-            monster.AttackStat += new AttackStat(monster.AttackStat.Attack * 0.2f * (monster.Level - 1),
-                                                 monster.AttackStat.RangeAttack * 0.2f * (monster.Level - 1),
-                                                 monster.AttackStat.MagicAttack * 0.2f * (monster.Level - 1));
-            monster.DefendStat += new DefendStat(monster.DefendStat.Defend * 0.17f * (monster.Level - 1),
-                                                 monster.DefendStat.RangeDefend * 0.17f * (monster.Level - 1),
-                                                 monster.DefendStat.MagicDefend * 0.17f * (monster.Level - 1));
+            monster.AttackStat += new AttackStat(monster.AttackStat * (0.2f * (monster.Level - 1)));
+            monster.DefendStat += new DefendStat(monster.DefendStat * (0.17f * (monster.Level - 1)));
             monster.OnDeath += () =>
             {
                 RemoveMonster(character, monster, currency);
@@ -1424,7 +1578,7 @@ namespace TextRPG
         /// Add monster to the linked list
         /// </summary>
         /// <param name="monster"></param>
-        private void AddMonster(Monster monster) { spawnedMonsters.AddLast(monster); }
+        private static void AddMonster(Monster monster) { spawnedMonsters.AddLast(monster); }
 
         /// <summary>
         /// Remove monster from the linked list
@@ -1432,7 +1586,7 @@ namespace TextRPG
         /// <param name="character"></param>
         /// <param name="monster"></param>
         /// <param name="currency"></param>
-        private void RemoveMonster(Character character, Monster monster, int currency)
+        private static void RemoveMonster(Character character, Monster monster, int currency)
         {
             Console.WriteLine($"| {monster.Name} is dead! |");
             Console.WriteLine($"| {character.Name} gets {currency}G |");
@@ -1450,7 +1604,7 @@ namespace TextRPG
         }
 
         // Return random items
-        private Armor? GetRandomArmor(int level)
+        private static Armor? GetRandomArmor(int level)
         {
             if (new Random().Next(1, 101) % 2 != 0) return null;
 
@@ -1482,7 +1636,7 @@ namespace TextRPG
             int ind = new Random().Next(filteredItems.Count());
             return filteredItems.ElementAt(ind);
         }
-        private Weapon? GetRandomWeapon(int level)
+        private static Weapon? GetRandomWeapon(int level)
         {
             if (new Random().Next(1, 101) % 2 != 0) return null;
             IEnumerable<Weapon> filteredItems;
@@ -1513,7 +1667,7 @@ namespace TextRPG
             int ind = new Random().Next(filteredItems.Count());
             return filteredItems.ElementAt(ind);
         }
-        private Consumables? GetRandomConsumable(int level)
+        private static Consumables? GetRandomConsumable(int level)
         {
             if (new Random().Next(1, 101) % 2 != 0) return null;
 
@@ -1545,7 +1699,7 @@ namespace TextRPG
             int ind = new Random().Next(filteredItems.Count());
             return filteredItems.ElementAt(ind);
         }
-        private ImportantItem? GetRandomImportantItem()
+        private static ImportantItem? GetRandomImportantItem()
         {
             if (new Random().Next(1, 101) % 2 != 0) return null;
 
@@ -1560,7 +1714,7 @@ namespace TextRPG
     /// <summary>
     /// Manage controls of overall game statements and functions
     /// </summary>
-    class GameManager
+    static class GameManager
     {
         // Static Field
         public static GameState GameState = GameState.MainMenu;
@@ -1570,14 +1724,9 @@ namespace TextRPG
         public static int PrevPath = 0;
         public static bool IsPathSelected = false;
         public static Queue<Consumables> Exposables = new();
-
-        // Property
-        public Character SelectedCharacter { get; private set; }
-        public int GroundLevel { get; private set; }
-        public int Quota { get; private set; } = 10;
-
-        // Constructor
-        public GameManager(int groundLevel = 1) { GroundLevel = groundLevel; }
+        public static Character SelectedCharacter;
+        public static int GroundLevel { get; private set; } = 1;
+        public static int Quota { get; private set; } = 10;
 
         // Methods
         #region Game Mechanisms
@@ -1587,35 +1736,40 @@ namespace TextRPG
         /// If not, it will return false.
         /// </summary>
         /// <returns>Returns true, if job selected successfully. If not, returns false.</returns>
-        public void SelectJob(SpawnManager spawnManager)
+        public static void SelectJob()
         {
             int option;
             while (true)
             {
                 UIManager.JobSelectionUI();
-                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); }
-                else if(opt < 0 || Enum.GetValues(typeof(Job)).Length < opt) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); }
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); }
+                else if(opt < 0 || Enum.GetValues(typeof(Job)).Length < opt) { Console.WriteLine("| 잘못된 입력입니다! |"); }
                 else { option = Math.Clamp(opt, 0, Enum.GetValues(typeof(Job)).Length); break; }
+                Console.Write("\nPress enter to continue..."); Console.ReadLine();
             }
 
             if (option <= 0) return;
-
+            
+            string name;
             switch ((Job)(option - 1))
             {
                 case Job.Warrior:
                     Console.WriteLine("| 전사를 선택하였습니다! |");
                     Console.Write("전사의 이름을 작성해주세요 : ");
-                    SelectedCharacter = new Warrior(new CharacterStat(Console.ReadLine(), 150, 50, 15, 1.6f, 1, new AttackStat(30f, 6f, 1f), new DefendStat(25, 15, 5)), 250, 0);
+                    name = Console.ReadLine() ?? "Jake"; if (name.Length < 1) name = "Jake";
+                    SelectedCharacter = new Warrior(new CharacterStat(name, 150, 50, 15, 1.6f, 1, new AttackStat(25f, 10f, 8f), new DefendStat(25, 15, 5)), 250, 0);
                     break;
                 case Job.Wizard:
                     Console.WriteLine("| 법사를 선택하였습니다! |");
                     Console.Write("법사의 이름을 작성해주세요 : ");
-                    SelectedCharacter = new Wizard(new CharacterStat(Console.ReadLine(), 100, 80, 15, 1.6f, 1, new AttackStat(1f, 6f, 30f), new DefendStat(5, 10, 30)), 250, 0);
+                    name = Console.ReadLine() ?? "Lucy"; if (name.Length < 1) name = "Lucy";
+                    SelectedCharacter = new Wizard(new CharacterStat(name, 100, 80, 15, 1.6f, 1, new AttackStat(8f, 10f, 25f), new DefendStat(5, 10, 30)), 250, 0);
                     break;
                 case Job.Archer:
                     Console.WriteLine("| 궁수를 선택하였습니다! |");
                     Console.Write("궁수의 이름을 작성해주세요 : ");
-                    SelectedCharacter = new Archer(new CharacterStat(Console.ReadLine(), 120, 65, 15, 1.6f, 1, new AttackStat(6f, 30f, 1f), new DefendStat(15, 25, 5)), 250, 0);
+                    name = Console.ReadLine() ?? "Omen"; if (name.Length < 1) name = "Omen";
+                    SelectedCharacter = new Archer(new CharacterStat(name, 120, 65, 15, 1.6f, 1, new AttackStat(10f, 25f, 8f), new DefendStat(15, 25, 5)), 250, 0);
                     break;
             }
 
@@ -1630,7 +1784,7 @@ namespace TextRPG
         /// Give basic items to the character.
         /// </summary>
         /// <param name="character"></param>
-        private void GiveBasicItems(Character character)
+        private static void GiveBasicItems(Character character)
         {
             // LINQ
             var basicHelmets = from armor in ItemLists.Armors
@@ -1679,7 +1833,7 @@ namespace TextRPG
         /// Give basic skills to the character.
         /// </summary>
         /// <param name="character"></param>
-        private void GiveBasicSkills(Character character)
+        private static void GiveBasicSkills(Character character)
         {
             // Active Skills
             if (character is Warrior)
@@ -1695,7 +1849,7 @@ namespace TextRPG
         /// <summary>
         /// Change to GameOver state.
         /// </summary>
-        private void GameOver()
+        private static void GameOver()
         {
             GameState = GameState.GameOver;
         }
@@ -1704,19 +1858,19 @@ namespace TextRPG
         /// Actions when game is over.
         /// </summary>
         /// <param name="spawnManager"></param>
-        public void GameOverAction(SpawnManager spawnManager)
+        public static void GameOverAction()
         {
             // Display Game Over UI
             UIManager.GameOverUI();
 
             // Remove all monsters
-            spawnManager.RemoveAllMonsters();
+            SpawnManager.RemoveAllMonsters();
 
             // Low currency -> Reset game and move to main menu
             if (SelectedCharacter.Currency < 100) { 
                 UIManager.ReviveOptionUI(SelectedCharacter);
-                ResetGame(); 
-                Console.Write("\nPress any key to continue..."); Console.ReadKey(); 
+                ResetGame();
+                Console.Write("\nPress enter to continue..."); Console.ReadLine();
                 return;
             }
 
@@ -1739,7 +1893,7 @@ namespace TextRPG
         /// <summary>
         /// Reset the game to initial state.
         /// </summary>
-        private void ResetGame()
+        private static void ResetGame()
         {
             GameState = GameState.MainMenu;
             GameTime = GameTime.Afternoon;
@@ -1752,7 +1906,7 @@ namespace TextRPG
         /// <summary>
         /// Remove all buffs applied to character when night passed.
         /// </summary>
-        public void RemoveAllBuffs()
+        public static void RemoveAllBuffs()
         {
             if (Exposables.Count <= 0) return;
 
@@ -1769,7 +1923,7 @@ namespace TextRPG
         /// <summary>
         /// Increase Dungeon level when character reached the quota.
         /// </summary>
-        public void GoToNextLevel()
+        public static void GoToNextLevel()
         {
             Console.WriteLine("| 목표량을 달성하였습니다, 던전 레벨과 목표량이 올라갑니다! |");
             KilledMonsterCount = 0;
@@ -1781,7 +1935,7 @@ namespace TextRPG
         /// <summary>
         /// Save the character and game data to JSON files.
         /// </summary>
-        public void SaveGame()
+        public static void SaveGame()
         {
             if (!Directory.Exists("data")) Directory.CreateDirectory("data");
 
@@ -1840,13 +1994,12 @@ namespace TextRPG
         /// Load the character and game data from JSON files.
         /// </summary>
         /// <exception cref="InvalidOperationException"></exception>
-        public void LoadGame()
+        public static void LoadGame()
         {
             if (!File.Exists("data/character.json") || !File.Exists("data/game.json") || !File.Exists("data/quest.json"))
             {
                 Console.WriteLine("| 저장된 세이브 데이터가 없습니다! |");
-                Console.Write("| Press any key to continue... |");
-                Console.ReadKey();
+                Console.Write("\nPress enter to continue..."); Console.ReadLine();
                 return;
             }
 
@@ -1901,7 +2054,7 @@ namespace TextRPG
         /// Set GameManager data from GameData.
         /// </summary>
         /// <param name="gameData"></param>
-        private void SetGameData(GameData gameData)
+        private static void SetGameData(GameData gameData)
         {
             GroundLevel = gameData.GroundLevel;
             Quota = gameData.Quota;

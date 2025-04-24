@@ -1,4 +1,5 @@
-
+namespace TextRPG
+{
     #region InGame Options
     public enum IdleOptions
     {
@@ -108,4 +109,4 @@
         Warrior, Wizard, Archer,
     }
     #endregion
-
+}
