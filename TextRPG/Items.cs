@@ -185,9 +185,7 @@ namespace TextRPG
         public virtual void OnPurchase(Character character)
         {
             if (character.Currency < Price) { Console.WriteLine("| Not enough Money! |"); return; }
-            character.Currency -= Price;
-
-            Console.WriteLine($"| {name}을 구매하였습니다! |"); 
+            Console.WriteLine($"| {name}을 구매하였습니다! |");
         }
 
         /// <summary>
@@ -270,6 +268,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price){ return; }
+            character.Currency -= Price;
             character.Armors.Add(new Helmet(this));
         }
 
@@ -316,6 +315,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Armors.Add(new ChestArmor(this));
         }
 
@@ -361,6 +361,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Armors.Add(new LegArmor(this));
         }
 
@@ -407,6 +408,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Armors.Add(new FootArmor(this));
         }
 
@@ -453,6 +455,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Armors.Add(new Gauntlet(this));
         }
 
@@ -546,7 +549,6 @@ namespace TextRPG
         public virtual void OnPurchase(Character character)
         {
             if (character.Currency < Price) { Console.WriteLine("| Not enough Money! |"); return; }
-            character.Currency -= Price;
             Console.WriteLine($"| {name} is purchased |");
         }
 
@@ -556,6 +558,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public void OnSell(Character character)
         {
+            if(IsEquipped) { Console.WriteLine($"| Not possible to sell!, {Name} is equipped! |"); return; }
             character.Currency += Price;
             character.Weapons.Remove(this);
             Console.WriteLine($"| {Name} is sold! |");
@@ -576,7 +579,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public void OnDropped(Character character)
         {
-            if (IsEquipped) { Console.WriteLine($"| {Name} is equipped! |"); return; }
+            if (IsEquipped) { Console.WriteLine($"| Not possible to drop!, {Name} is equipped! |"); return; }
             character.Weapons.Remove(this);
             Console.WriteLine($"| Dropped {name}! |");
         }
@@ -612,6 +615,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Weapons.Add(new Sword(this));
         }
 
@@ -669,6 +673,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Weapons.Add(new Bow(this));
         }
 
@@ -728,6 +733,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Weapons.Add(new Staff(this));
         }
 
@@ -810,7 +816,6 @@ namespace TextRPG
         public virtual void OnPurchase(Character character)
         {
             if (character.Currency < Price) { Console.WriteLine("| Not enough Money! |"); return; }
-            character.Currency -= Price;
             Console.WriteLine($"| {name} is purchased |");
         }
 
@@ -882,6 +887,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Consumables.Add(new HealthPotion(this));
         }
 
@@ -941,6 +947,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Consumables.Add(new MagicPotion(this));
         }
 
@@ -1022,6 +1029,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Consumables.Add(new AttackBuffPotion(this));
         }
 
@@ -1105,6 +1113,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Consumables.Add(new DefendBuffPotion(this));
         }
 
@@ -1194,6 +1203,7 @@ namespace TextRPG
         {
             base.OnPurchase(character);
             if (character.Currency < Price) { return; }
+            character.Currency -= Price;
             character.Consumables.Add(new AllBuffPotion(this));
         }
 
@@ -1283,7 +1293,7 @@ namespace TextRPG
         public override void OnPicked(Character character)
         {
             base.OnPicked(character);
-            character.ImportantItems.Add(new GoblinEar(this));
+            character.ImportantItems.AddLast(new GoblinEar(this));
             var quests = QuestManager.GetContractedQuests_CollectItem(GetType().Name);
             foreach (var quest in quests) { quest.OnProgress(character); }
         }
@@ -1308,7 +1318,7 @@ namespace TextRPG
         public override void OnPicked(Character character)
         {
             base.OnPicked(character);
-            character.ImportantItems.Add(new GoblinEye(this));
+            character.ImportantItems.AddLast(new GoblinEye(this));
             var quests = QuestManager.GetContractedQuests_CollectItem(GetType().Name);
             foreach (var quest in quests) { quest.OnProgress(character); }
         }
