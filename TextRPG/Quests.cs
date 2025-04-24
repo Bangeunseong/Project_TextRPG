@@ -276,11 +276,9 @@ namespace TextRPG
             base.OnContracted();
             foreach (var item in character.ImportantItems)
             {
-                if (nameof(item).Equals(ItemName))
-                {
-                    QuestProgress++;
-                    if (QuestProgress >= QuestGoal) { IsCompleted = true; break; }
-                }
+                if (!item.GetType().Name.Equals(ItemName)) continue;
+                QuestProgress++;
+                if (QuestProgress >= QuestGoal) { IsCompleted = true; break; }
             }
         }
 
@@ -295,11 +293,9 @@ namespace TextRPG
             QuestProgress = 0;
             foreach (var item in character.ImportantItems)
             {
-                if (nameof(item).Equals(ItemName))
-                {
-                    QuestProgress++;
-                    if (QuestProgress >= QuestGoal) { IsCompleted = true; break; }
-                }
+                if (!item.GetType().Name.Equals(ItemName)) continue;
+                QuestProgress++;
+                if (QuestProgress >= QuestGoal) { IsCompleted = true; break; }
             }
         }
 
@@ -333,7 +329,7 @@ namespace TextRPG
             int i = 0;
             foreach (var item in character.ImportantItems)
             {
-                if (nameof(item).Equals(ItemName))
+                if (item.GetType().Name.Equals(ItemName))
                 {
                     item.OnDropped(character); i++;
                     if (i >= QuestGoal) break;

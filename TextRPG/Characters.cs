@@ -200,19 +200,22 @@ namespace TextRPG
         /// <param name="damage"></param>
         public void OnDamage(AttackType type, float damage, bool isSkill)
         {
-            if (IsEvaded() && !isSkill) return;
+            if (IsEvaded() && !isSkill) { Console.WriteLine($"| {Name}이 공격을 회피하였습니다! |"); return; }
 
+            StringBuilder sb = new();
+            sb.Append($"| {Name}이 ");
             if (IsCriticalHit())
             {
                 damage *= CriticalHitDamagePercentage;
-                Console.WriteLine($"| {Name}이 치명타를 맞았습니다! |");
+                sb.Append($"치명적인 공격에 맞아");
             }
             float calculatedDamage =
                 type == AttackType.Close ? Math.Max(1f, damage * (1f - DefendStat.Defend / 100f)) :
                 (type == AttackType.Long ? Math.Max(1f, damage * (1f - DefendStat.RangeDefend / 100f)) :
                 Math.Max(1f, damage * (1f - DefendStat.MagicDefend / 100f)));
 
-            Console.WriteLine($"| {Name}이 {calculatedDamage:F2}의 데미지를 받았습니다! |");
+            sb.Append($" {calculatedDamage:F2}의 데미지를 받았습니다! |");
+            Console.WriteLine(sb.ToString());
             Health -= calculatedDamage;
 
             if (Health < 1f && IsAlive) Die();

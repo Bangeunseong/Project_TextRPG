@@ -280,8 +280,8 @@ namespace TextRPG
             {
                 Console.Clear();
                 UIManager.ShopUI(character);
-                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
-                else if (opt < 0 || opt > 4) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); continue; }
+                else if (opt < 0 || opt > 4) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); continue; }
                 switch (Math.Clamp(opt, 0, 4))
                 {
                     // Exit from shop
@@ -290,14 +290,14 @@ namespace TextRPG
                     // Buy Armor in shop
                     case 1:
                         UIManager.ShowShopList(ItemCategory.Armor);
-                        if (!int.TryParse(Console.ReadLine(), out int ind1)) { Console.WriteLine("| 잘못된 입력입니다! |"); break; }
+                        if (!int.TryParse(Console.ReadLine(), out int ind1)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); break; }
                         else if (ind1 <= 0) break;
                         InShop_Buy(ItemCategory.Armor, ind1); break;
 
                     // Buy Weapon in shop
                     case 2:
                         UIManager.ShowShopList(ItemCategory.Weapon);
-                        if (!int.TryParse(Console.ReadLine(), out int ind2)) { Console.WriteLine("| 잘못된 입력입니다! |"); break; }
+                        if (!int.TryParse(Console.ReadLine(), out int ind2)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); break; }
                         else if (ind2 <= 0) break;
                         InShop_Buy(ItemCategory.Weapon, ind2);
                         break;
@@ -305,7 +305,7 @@ namespace TextRPG
                     // Buy Consumable in shop
                     case 3:
                         UIManager.ShowShopList(ItemCategory.Consumable);
-                        if (!int.TryParse(Console.ReadLine(), out int ind3)) { Console.WriteLine("| 잘못된 입력입니다! |"); break; }
+                        if (!int.TryParse(Console.ReadLine(), out int ind3)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press any key to continue..."); Console.ReadKey(); break; }
                         else if (ind3 <= 0) break;
                         InShop_Buy(ItemCategory.Consumable, ind3);
                         break;
@@ -404,16 +404,17 @@ namespace TextRPG
                 foreach (string line in Miscs.Quest) Console.WriteLine(line);
                 UIManager.QuestUI();
                 if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
-                else if (opt < 1 || opt > 6) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
+                else if (opt < 1 || opt > 7) { Console.WriteLine("| 잘못된 입력입니다! |"); continue; }
 
-                switch (Math.Clamp(opt, 1, 6))
+                switch (Math.Clamp(opt, 1, 7))
                 {
                     case 1: return;
                     case 2: ContractQuest(); break;
                     case 3: CompleteQuest(GameManager.SelectedCharacter); break;
                     case 4: ShowQuests(QuestStatus.NotStarted); break;
                     case 5: ShowQuests(QuestStatus.InProgress); break;
-                    case 6: ShowQuests(QuestStatus.Completed); break;
+                    case 6: ShowQuests(QuestStatus.Completable); break;
+                    case 7: ShowQuests(QuestStatus.Completed); break;
                 }
             }
         }
@@ -482,9 +483,22 @@ namespace TextRPG
         {
             if (type == QuestStatus.NotStarted) { foreach (var quest in QuestManager.GetContractableQuests()) Console.WriteLine($"{quest.ToString()}"); }
             else if (type == QuestStatus.InProgress) { foreach (var quest in QuestManager.GetContractedQuests()) Console.WriteLine($"{quest.ToString()}"); }
+            else if(type == QuestStatus.Completable) { foreach(var quest in QuestManager.GetCompletableQuests()) Console.WriteLine($"{quest.ToString()}"); }
             else if (type == QuestStatus.Completable) { foreach (var quest in QuestManager.GetCompletableQuests()) Console.WriteLine($"{quest.ToString()}"); }
             else { foreach (var quest in QuestManager.GetCompletedQuests()) Console.WriteLine($"{quest.ToString()}"); }
             Console.WriteLine("| Press any key to continue... |");
+            Console.ReadKey(true);
+        }
+
+        /// <summary>
+        /// Moves player to dungeon.
+        /// </summary>
+        private void InTown_MoveToDungeon()
+        {
+            if (GameManager.GroundLevel < 3) foreach (string line in Miscs.EasyEntrance) Console.WriteLine(line);
+            else foreach (string line in Miscs.HardEntrance) Console.WriteLine(line);
+            GameManager.GameState = GameState.Dungeon;
+            Console.WriteLine("Press any key to continue...");
             Console.ReadKey(true);
         }
 
@@ -503,7 +517,7 @@ namespace TextRPG
             {
                 case IdleOptions.Shop: InShop(); break;
                 case IdleOptions.Quest: InQuest(); break;
-                case IdleOptions.Dungeon: GameManager.GameState = GameState.Dungeon; break;
+                case IdleOptions.Dungeon: InTown_MoveToDungeon(); break;
                 case IdleOptions.Rest: InRest(); break;
                 case IdleOptions.Inventory: InInventory(); break;
                 case IdleOptions.Status: InStatus(); break;
@@ -519,23 +533,8 @@ namespace TextRPG
         /// </summary>
         private void InDungeon()
         {
-            
-            // Check for Quota completion
-            if (GameManager.KilledMonsterCount >= GameManager.Quota)
-            {
-                GameManager.GoToNextLevel();
-            }
-
             // Print UI of Kill Count and Player Options
-            Console.Clear();
-            if (GameManager.GroundLevel < 50)
-            {
-                foreach (string line in Miscs.EasyEntrance) Console.WriteLine(line);
-            }
-            else
-            {
-                foreach (string line in Miscs.HardEntrance) Console.WriteLine(line);
-            }
+            Console.Clear();  
             int[] pathOptions = RandomPathOption();
             UIManager.KillCountUI(GameManager.KilledMonsterCount, GameManager.Quota);
             UIManager.DungeonUI(GameManager.SelectedCharacter, GameManager, pathOptions);
@@ -565,6 +564,10 @@ namespace TextRPG
             string path = Miscs.path[random];
             Console.WriteLine($"{path}");
 
+            foreach (string line in Miscs.path[random].Split('\n'))
+            {
+                Console.WriteLine(line);
+            }
             return random switch
             {
                 0 => new int[] { (int)DungeonOptions.Forward, (int)DungeonOptions.Backward },
@@ -636,6 +639,10 @@ namespace TextRPG
             if (SpawnManager.GetMonsterCount() <= 0)
             {
                 InBattle_EscapeFromBattle("모든 몬스터들을 무찔렀습니다!");
+                if (GameManager.KilledMonsterCount >= GameManager.Quota) GameManager.GoToNextLevel();
+                
+                Console.WriteLine("| Press any key to continue... |");
+                Console.ReadKey();
                 return;
             }
 
@@ -768,8 +775,9 @@ namespace TextRPG
             InBattle_RemoveBuffSkills(false);
 
             Console.WriteLine($"\n| {headLine} |");
+            if (GameManager.KilledMonsterCount >= GameManager.Quota) GameManager.GoToNextLevel();
             Console.Write("| Press any key to continue... |");
-            Console.ReadKey(true);
+            Console.ReadKey();
 
             GameManager.CurrentTurn = 1;
             GameManager.GameState = GameState.Dungeon;
