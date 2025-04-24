@@ -185,12 +185,20 @@ namespace TextRPG
             Health = MaxHealth;
             MagicPoint = MaxMagicPoint;
 
-            AttackStat += new AttackStat(AttackStat.Attack * 0.15f,
-                                         AttackStat.RangeAttack * 0.15f,
-                                         AttackStat.MagicAttack * 0.15f);
-            DefendStat += new DefendStat(DefendStat.Defend * 0.15f,
-                                         DefendStat.RangeDefend * 0.15f,
-                                         DefendStat.MagicDefend * 0.15f);
+            AttackStat newAtkStat = new(AttackStat);
+            DefendStat newDefStat = new(DefendStat);
+            foreach (var item in GameManager.Exposables)
+            {
+                if(item is AttackBuffPotion attackBuffPotion) { newAtkStat -= attackBuffPotion.AttackStat; }
+                else if(item is DefendBuffPotion defendBuffPotion) { newDefStat -= defendBuffPotion.DefendStat; }
+                else if(item is AllBuffPotion allBuffPotion) { 
+                    newAtkStat -= allBuffPotion.AttackStat; 
+                    newDefStat -= allBuffPotion.DefendStat; 
+                }
+            }
+
+            AttackStat += new AttackStat(newAtkStat + 1.25f);
+            DefendStat += new DefendStat(newDefStat + 1.25f);
         }
 
         /// <summary>
