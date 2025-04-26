@@ -3,7 +3,7 @@ namespace TextRPG
     #region InGame Options
     public enum IdleOptions
     {
-        Shop, Rest, Quest, Dungeon, Inventory, Status, Option,
+        Shop, MercenaryShop, Rest, Quest, Dungeon, Inventory, Status, Option,
     }
 
     public enum DungeonOptions

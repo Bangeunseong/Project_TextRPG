@@ -1,3 +1,4 @@
+using System.Net.Security;
 using System.Text;
 using System.Text.Json;
 
@@ -187,6 +188,66 @@ namespace TextRPG
             foreach (ImportantItem item in character.ImportantItems) { Console.WriteLine($"| {i++}. {item} |"); }
             Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
             Console.Write("\n무엇을 판매하겠습니까? ( Type [ Category,Index ], 취소하려면 exit을 입력하세요) : ");
+        }
+
+        /// <summary>
+        /// Mercenary Shop UI
+        /// </summary>
+        /// <param name="character"></param>
+        public static void MercenaryShopUI(Character character)
+        {
+            Console.Clear();
+            Console.WriteLine("| .:~:. Welcome to Henry's Shop! .:~:. |");
+            foreach (string line in Miscs.Henry) Console.WriteLine(line);
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
+
+            Console.WriteLine($"\n| Gold : {character.Currency} |");
+            Console.WriteLine("| 1. 뒤로가기 |");
+            Console.WriteLine("| 2. 용병 계약 |");
+            Console.WriteLine("| 3. 용병 계약해제 |");
+            Console.Write("\n원하는 기능을 선택하세요 : ");
+
+        }
+
+        /// <summary>
+        /// Mercenary Shop UI -> Having a contract with mercenary
+        /// </summary>
+        /// <param name="character"></param>
+        /// <param name="mercenaries"></param>
+        public static bool MercenaryShopUI_ContractMercenary(Character character, List<Character> mercenaries)
+        {
+            Console.Clear();
+            Console.WriteLine("| .:~:. Welcome to Henry's Shop! .:~:. |");
+            foreach (string line in Miscs.Henry) Console.WriteLine(line);
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
+
+            if (mercenaries == null || !mercenaries.Any()) { Console.WriteLine("\n| 죄송합니다, 계약할 수 있는 용병이 현재 없습니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); return false; }
+
+            Console.WriteLine($"\n| Gold : {character.Currency} |");
+            int i = 1;
+            foreach (var mercenary in mercenaries) { Console.WriteLine($"[{i++}]\n{mercenary.ToString()}"); }
+            Console.Write("계약하고자 하는 용병을 선택하세요 ( 취소하려면 0을 입력하세요 ) : ");
+            return true;
+        }
+
+        /// <summary>
+        /// Mercenary Shop UI -> Cancel a contract of mercenary
+        /// </summary>
+        public static bool MercenaryShopUI_CancelContract()
+        {
+            var mercenaries = MercenaryManager.GetMercenaries();
+
+            Console.Clear();
+            Console.WriteLine("| .:~:. Welcome to Henry's Shop! .:~:. |");
+            foreach (string line in Miscs.Henry) Console.WriteLine(line);
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
+
+            if (!mercenaries.Any()) { Console.WriteLine("\n| 죄송합니다, 계약해지를 할 수 있는 용병이 없습니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); return false; }
+
+            int i = 1;
+            foreach (var mercenary in mercenaries) { Console.WriteLine($"[{i++}] {mercenary.ToString()}\n"); }
+            Console.Write("계약해지를 하고자 하는 용병을 선택하세요 ( 취소하려면 0을 입력하세요 ) : ");
+            return true;
         }
 
         /// <summary>
@@ -2311,5 +2372,140 @@ namespace TextRPG
             Exposables = new Queue<Consumables>(gameData.Exposables);
         }
         #endregion
+    }
+
+    /// <summary>
+    /// Mercenaries -> Purchasable Characters
+    /// </summary>
+    static class MercenaryManager
+    {
+        // Field
+        private static LinkedList<Character> MercenaryList = new LinkedList<Character>();
+
+        // Methods
+        
+        /// <summary>
+        /// Get all mercenaries added to the list
+        /// </summary>
+        /// <returns>List of Added mercenaries</returns>
+        public static LinkedList<Character> GetMercenaries() { return MercenaryList; }
+        /// <summary>
+        /// Add mercenary to the list
+        /// </summary>
+        /// <param name="mercenary"></param>
+        public static void AddMercenary(Character mercenary) { MercenaryList.AddLast(mercenary); }
+
+        /// <summary>
+        /// Remove mercenary from the list
+        /// </summary>
+        /// <param name="mercenary"></param>
+        public static void RemoveMercenary(Character mercenary) { MercenaryList.Remove(mercenary); }
+
+        /// <summary>
+        /// Remove all mercenaries
+        /// </summary>
+        public static void RemoveAllMercenaries() { MercenaryList.Clear(); }
+
+        /// <summary>
+        /// Generates Random Mercenaries
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static List<Character> GenerateRandomMercenaries(int count)
+        {
+            var mercenaries = new List<Character>();
+            for (int i = 0; i < count; i++)
+            {
+                var mercenary = GenerateRandomMercenary();
+                GiveRandomWeapon(mercenary);
+                mercenary.OnDeath += () => { Console.WriteLine($"| {mercenary.Name}이 죽었습니다!"); RemoveMercenary(mercenary); };
+                mercenaries.Add(mercenary);
+            }
+            return mercenaries;
+        }
+
+        /// <summary>
+        /// Give Random Weapon to the mercenary
+        /// </summary>
+        /// <param name="mercenary"></param>
+        private static void GiveRandomWeapon(Character mercenary)
+        {
+            var random = new Random();
+            List<Weapon> weapons = new();
+            if(mercenary is Warrior)
+            {
+                weapons = ItemLists.Weapons.Where(w => w is Sword && (mercenary.Level < 10 ? w.Rarity == Rarity.Common : 
+                (mercenary.Level < 20 ? w.Rarity == Rarity.Common : 
+                (mercenary.Level < 40 ? w.Rarity == Rarity.Rare : 
+                (mercenary.Level < 60 ? w.Rarity == Rarity.Hero :
+                w.Rarity == Rarity.Legend))))).ToList();
+            } else if(mercenary is Archer)
+            {
+                weapons = ItemLists.Weapons.Where(w => w is Bow && (mercenary.Level < 10 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 20 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 40 ? w.Rarity == Rarity.Rare :
+                (mercenary.Level < 60 ? w.Rarity == Rarity.Hero :
+                w.Rarity == Rarity.Legend))))).ToList();
+            } else if(mercenary is Wizard)
+            {
+                weapons = ItemLists.Weapons.Where(w => w is Staff && (mercenary.Level < 10 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 20 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 40 ? w.Rarity == Rarity.Rare :
+                (mercenary.Level < 60 ? w.Rarity == Rarity.Hero :
+                w.Rarity == Rarity.Legend))))).ToList();
+            }
+            if (!weapons.Any()) return;
+            mercenary.Weapons.Add(weapons.First());
+            mercenary.Weapons.First().OnEquip(mercenary);
+        }
+
+        /// <summary>
+        /// Generate Random Mercenary
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        private static Character GenerateRandomMercenary()
+        {
+            var random = new Random();
+            var names = new[] { "John", "Jane", "Bob", "Alice", "Mike", "Sara" };
+            var name = names[random.Next(names.Length)];
+            var level = GameManager.SelectedCharacter.Level;
+            var maxHealth = random.Next(120, 150) + (level - 1) * 15;
+            var maxMagicPoint = random.Next(50, 80) + (level - 1) * 10;
+            var characterType = (Job)random.Next(0, 3);
+            
+
+            AttackStat? atkStat = null; DefendStat? defStat = null;
+            if (characterType == Job.Warrior)
+            {
+                atkStat = new AttackStat(random.Next(18, 31), random.Next(10, 14), random.Next(1, 8));
+                atkStat += level;
+                defStat = new DefendStat(random.Next(20, 26), random.Next(10, 15), random.Next(1, 10));
+                defStat += level;
+            }
+            else if (characterType == Job.Wizard)
+            {
+                atkStat = new AttackStat(random.Next(8, 12), random.Next(18, 31), random.Next(5, 10));
+                atkStat += level;
+                defStat = new DefendStat(random.Next(8, 12), random.Next(20, 26), random.Next(5, 12));
+                defStat += level;
+            }
+            else if (characterType == Job.Archer)
+            {
+                atkStat = new AttackStat(random.Next(4, 10), random.Next(8, 12), random.Next(18, 31));
+                atkStat += level;
+                defStat = new DefendStat(random.Next(5, 12), random.Next(8, 12), random.Next(20, 26));
+                defStat += level;
+            }
+            var price = random.Next(120, 180);
+
+            return characterType switch
+            {
+                Job.Warrior => new Warrior(new CharacterStat(name, maxHealth, maxHealth, maxMagicPoint, maxMagicPoint, 10, 1.5f, level, atkStat ?? new AttackStat(1, 1, 1), defStat ?? new DefendStat(1, 1, 1)), price, 0),
+                Job.Wizard => new Wizard(new CharacterStat(name, maxHealth, maxHealth, maxMagicPoint, maxMagicPoint, 10, 1.5f, level, atkStat ?? new AttackStat(1, 1, 1), defStat ?? new DefendStat(1, 1, 1)), price, 0),
+                Job.Archer => new Archer(new CharacterStat(name, maxHealth, maxHealth, maxMagicPoint, maxMagicPoint, 10, 1.5f, level, atkStat ?? new AttackStat(1, 1, 1), defStat ?? new DefendStat(1, 1, 1)), price, 0),
+                _ => throw new ArgumentOutOfRangeException(nameof(characterType), characterType, null)
+            };
+        }
     }
 }

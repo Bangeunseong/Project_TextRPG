@@ -398,6 +398,84 @@ namespace TextRPG
             }
         }
 
+        private void InMercenaryShop()
+        {
+            while (true)
+            {
+                UIManager.MercenaryShopUI(GameManager.SelectedCharacter);
+                if(!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                else if (opt < 0 || opt > 3) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                switch (Math.Clamp(opt, 0, 3))
+                {
+                    case 1: return;
+                    case 2: InMercenaryShop_Contract(); break;
+                    case 3: InMercenaryShop_CancelContract(); break;
+                    default: Console.WriteLine("| 잘못된 입력입니다! |"); break;
+                }
+            }
+        }
+
+        private void InMercenaryShop_Contract()
+        {
+            var mercenaries = MercenaryManager.GenerateRandomMercenaries(new Random().Next(1, 5));
+
+            while (true)
+            {
+                if(!UIManager.MercenaryShopUI_ContractMercenary(GameManager.SelectedCharacter, mercenaries)) break;
+                if(!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                else if (opt < 0 || opt > mercenaries.Count) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                
+                if(opt == 0) return;
+
+                while (true)
+                {
+                    Console.Write($"\"{mercenaries.ElementAt(opt - 1).Name}\" 와 정말로 계약할 것입니까? (Y/N) : ");
+                    string key = Console.ReadLine();
+                    if(key == null || key.Length < 1) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                    else if (key.Equals("Y", StringComparison.OrdinalIgnoreCase)) { 
+                        var mercenary = mercenaries.ElementAt(opt - 1);
+                        if(mercenary.Currency > GameManager.SelectedCharacter.Currency) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                        else if(MercenaryManager.GetMercenaries().Count() > 2) { Console.WriteLine("| 용병은 최대 3명까지 계약할 수 있습니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+
+                        GameManager.SelectedCharacter.Currency -= mercenary.Currency;
+                        MercenaryManager.AddMercenary(mercenary);
+                        mercenaries.Remove(mercenary);
+                        break; 
+                    }
+                    else if (key.Equals("N", StringComparison.OrdinalIgnoreCase)) { break; }
+                    else { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                }
+            }
+        }
+
+        private void InMercenaryShop_CancelContract()
+        {
+            var mercenaries = MercenaryManager.GetMercenaries();
+
+            while (true)
+            {
+                if (!UIManager.MercenaryShopUI_CancelContract()) break;
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                else if (opt < 0 || opt > mercenaries.Count()) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                
+                if (opt == 0) return;
+                while (true)
+                {
+                    Console.Write($"\"{mercenaries.ElementAt(opt - 1).Name}\" 와 정말로 계약할 것입니까? (Y/N) : ");
+                    string key = Console.ReadLine();
+                    if (key == null || key.Length < 1) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                    else if (key.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var mercenary = mercenaries.ElementAt(opt - 1);
+                        MercenaryManager.RemoveMercenary(mercenary);
+                        break;
+                    }
+                    else if (key.Equals("N", StringComparison.OrdinalIgnoreCase)) { break; }
+                    else { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                }
+            }
+        }
+
         /// <summary>
         /// Gives interface what player can do in quest.
         /// </summary>
@@ -506,6 +584,7 @@ namespace TextRPG
             switch ((IdleOptions)(Math.Clamp(opt - 1, 0, Enum.GetValues(typeof(IdleOptions)).Length - 1)))
             {
                 case IdleOptions.Shop: InShop(); break;
+                case IdleOptions.MercenaryShop: InMercenaryShop(); break;
                 case IdleOptions.Quest: InQuest(); break;
                 case IdleOptions.Dungeon: InTown_MoveToDungeon(); break;
                 case IdleOptions.Rest: InRest(); break;
