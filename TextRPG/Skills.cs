@@ -69,6 +69,7 @@ namespace TextRPG
             }
             
             character.OnMagicPointConsume(ManaCost);
+            Console.WriteLine("| .:~:. 플레이어 턴 .:~:. |");
             Console.WriteLine($"| 스킬_{Name}을 {target.Name}에 시전하였습니다! |");
 
             AttackType? type = character.EquippedWeapon?.AttackType;
@@ -97,6 +98,7 @@ namespace TextRPG
             }
             
             character.OnMagicPointConsume(ManaCost);
+            Console.WriteLine("| .:~:. 플레이어 턴 .:~:. |");
             Console.WriteLine($"| 스킬_{Name}을 모든 몬스터에 시전하였습니다! |");
 
             AttackType? type = character.EquippedWeapon?.AttackType;
@@ -145,11 +147,11 @@ namespace TextRPG
         private AttackStat CalculateAtkStat(Character character)
         {
             AttackStat newAtkStat = new(character.AttackStat);
-            if (character.EquippedWeapon != null) { newAtkStat += character.AttackStat; }
+            if (character.EquippedWeapon != null) { newAtkStat += character.EquippedWeapon.AttackStat; }
             foreach (var item in GameManager.Exposables)
             {
-                if (item is AttackBuffPotion atkPotion) { newAtkStat += atkPotion.AttackStat; }
-                else if (item is AllBuffPotion allPotion) { newAtkStat += allPotion.AttackStat; }
+                if (item is AttackBuffPotion atkPotion) { if(atkPotion.TargetId == character.Id) newAtkStat += atkPotion.AttackStat; }
+                else if (item is AllBuffPotion allPotion) { if (allPotion.TargetId == character.Id) newAtkStat += allPotion.AttackStat; }
             }
             foreach (var skill in character.Skills)
             {

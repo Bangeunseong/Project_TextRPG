@@ -86,6 +86,7 @@ namespace TextRPG
         private CharacterStat characterStat;
         private int currency;
         private int exp;
+        private int id;
 
         // Property
         [JsonIgnore] public CharacterStat CharacterStat { get { return characterStat; } protected set { characterStat = value; } }
@@ -100,6 +101,7 @@ namespace TextRPG
         [JsonInclude] public int Level { get { return characterStat.Level; } protected set { characterStat.Level = value; } }
         [JsonInclude] public AttackStat AttackStat { get { return characterStat.AttackStat; } set { characterStat.AttackStat = value; } }
         [JsonInclude] public DefendStat DefendStat { get { return characterStat.DefendStat; } set { characterStat.DefendStat = value; } }
+        [JsonInclude] public int Id { get { return id; } set { id = value; } }
 
         public int Currency { get { return currency; } set { currency = Math.Max(0, value); } }
         [JsonInclude] public int Exp { get { return exp; } protected set { exp = Math.Clamp(value, 0, 9999); } }
@@ -117,17 +119,19 @@ namespace TextRPG
         public event Action? OnDeath;
 
         // Constructor
-        public Character(CharacterStat characterStat, int currency, int exp)
+        public Character(int id, CharacterStat characterStat, int currency, int exp)
         {
             CharacterStat = new(characterStat);
+            Id = id;
             Currency = currency;
             Exp = exp;
         }
 
         [JsonConstructor]
-        public Character(string name, float maxHealth, float health, float maxMagicPoint, float magicPoint, int criticalHitChange, float criticalHitDamagePercentage, int level, AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive)
+        public Character(int id, string name, float maxHealth, float health, float maxMagicPoint, float magicPoint, int criticalHitChange, float criticalHitDamagePercentage, int level, AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive)
         {
             CharacterStat = new(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChange, criticalHitDamagePercentage, level, attackStat, defendStat);
+            Id = id;
             Currency = currency;
             Exp = exp;
             IsAlive = isAlive;
@@ -212,8 +216,8 @@ namespace TextRPG
             foreach (var item in EquippedArmor) { if (item != null) newDefendStat += item.DefendStat; }
             foreach (var item in GameManager.Exposables)
             {
-                if (item is DefendBuffPotion defpotion) { newDefendStat += defpotion.DefendStat; }
-                else if (item is AllBuffPotion allBuffPotion) { newDefendStat += allBuffPotion.DefendStat; }
+                if (item is DefendBuffPotion defpotion) { if(defpotion.TargetId == id) newDefendStat += defpotion.DefendStat; }
+                else if (item is AllBuffPotion allBuffPotion) { if (allBuffPotion.TargetId == id) newDefendStat += allBuffPotion.DefendStat; }
             }
             foreach (var skill in Skills)
             {
@@ -291,9 +295,10 @@ namespace TextRPG
         {
             StringBuilder sb = new();
             sb.AppendLine($"| Lv {Level} | 이름: {Name} | 가격 : {Currency} |")
-              .AppendLine($"| HP : {MaxHealth} | MP : {MaxMagicPoint} |")
-              .AppendLine($"| {AttackStat} |")
-              .AppendLine($"| {DefendStat} |");
+              .AppendLine($"| HP : {Health:F2}/{MaxHealth:F2} | MP : {MagicPoint:F2}/{MaxMagicPoint:F2} |")
+              .AppendLine($"| Atk : {AttackStat.Attack:F2} + ({(EquippedWeapon?.AttackStat.Attack ?? 0):F2}), Rng Atk : {AttackStat.RangeAttack:F2} + ({(EquippedWeapon?.AttackStat.RangeAttack ?? 0):F2}), Mag Atk : {AttackStat.MagicAttack:F2} + ({(EquippedWeapon?.AttackStat.MagicAttack ?? 0):F2}) |")
+              .AppendLine($"| {DefendStat} |")
+              .AppendLine($"| 장착된 무기 : {EquippedWeapon?.ToString() ?? "없음"}");
             return sb.ToString();
         }
     }
@@ -310,16 +315,16 @@ namespace TextRPG
         [JsonIgnore] public Job Job { get { return job; } protected set { job = value; } }
 
         // Constructor
-        public Warrior(CharacterStat characterStat, int currency, int exp) : base(characterStat, currency, exp) { job = Job.Warrior; }
-        public Warrior(Warrior warrior) : base(warrior.CharacterStat, warrior.Currency, warrior.Exp) { job = Job.Warrior; }
+        public Warrior(int id, CharacterStat characterStat, int currency, int exp) : base(id, characterStat, currency, exp) { job = Job.Warrior; }
+        public Warrior(Warrior warrior) : base(warrior.Id,warrior.CharacterStat, warrior.Currency, warrior.Exp) { job = Job.Warrior; }
 
         [JsonConstructor]
-        public Warrior(string name, float maxHealth, float health, float maxMagicPoint, float magicPoint,
+        public Warrior(int id, string name, float maxHealth, float health, float maxMagicPoint, float magicPoint,
             int criticalHitChance, float criticalHitDamagePercentage, int level,
             AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive,
             List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, LinkedList<ImportantItem> importantItems, List<Skill> skills,
             Armor?[] equippedArmor, Weapon? equippedWeapon)
-            : base(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
+            : base(id, name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
         {
             Job = Job.Warrior;
             Armors = armors ?? new List<Armor>();
@@ -349,16 +354,16 @@ namespace TextRPG
         public Job Job { get { return job; } protected set { job = value; } }
 
         // Constructor
-        public Wizard(CharacterStat characterStat, int currency, int exp) : base(characterStat, currency, exp) { job = Job.Wizard; }
-        public Wizard(Wizard wizard) : base(wizard.CharacterStat, wizard.Currency, wizard.Exp) { job = Job.Wizard; }
+        public Wizard(int id, CharacterStat characterStat, int currency, int exp) : base(id, characterStat, currency, exp) { job = Job.Wizard; }
+        public Wizard(Wizard wizard) : base(wizard.Id, wizard.CharacterStat, wizard.Currency, wizard.Exp) { job = Job.Wizard; }
 
         [JsonConstructor]
-        public Wizard(string name, float maxHealth, float health, float maxMagicPoint,
+        public Wizard(int id, string name, float maxHealth, float health, float maxMagicPoint,
             float magicPoint, int criticalHitChance, float criticalHitDamagePercentage, int level,
             AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive,
             List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, LinkedList<ImportantItem> importantItems, List<Skill> skills,
             Armor?[] equippedArmor, Weapon? equippedWeapon)
-            : base(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
+            : base(id, name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
         {
             Job = Job.Wizard;
             IsAlive = isAlive;
@@ -389,16 +394,16 @@ namespace TextRPG
         public Job Job { get { return job; } protected set { job = value; } }
 
         // Constructor
-        public Archer(CharacterStat characterStat, int currency, int exp) : base(characterStat, currency, exp) { job = Job.Archer; }
-        public Archer(Archer archer) : base(archer.CharacterStat, archer.Currency, archer.Exp) { job = Job.Archer; }
+        public Archer(int id, CharacterStat characterStat, int currency, int exp) : base(id, characterStat, currency, exp) { job = Job.Archer; }
+        public Archer(Archer archer) : base(archer.Id, archer.CharacterStat, archer.Currency, archer.Exp) { job = Job.Archer; }
 
         [JsonConstructor]
-        public Archer(string name, float maxHealth, float health, float maxMagicPoint,
+        public Archer(int id, string name, float maxHealth, float health, float maxMagicPoint,
             float magicPoint, int criticalHitChance, float criticalHitDamagePercentage, int level,
             AttackStat attackStat, DefendStat defendStat, int currency, int exp, bool isAlive,
             List<Armor> armors, List<Weapon> weapons, List<Consumables> consumables, LinkedList<ImportantItem> importantItems, List<Skill> skills,
             Armor?[] equippedArmor, Weapon? equippedWeapon)
-            : base(name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
+            : base(id, name, maxHealth, health, maxMagicPoint, magicPoint, criticalHitChance, criticalHitDamagePercentage, level, attackStat, defendStat, currency, exp, isAlive)
         {
             Job = Job.Archer;
             IsAlive = isAlive;

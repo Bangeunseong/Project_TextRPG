@@ -784,11 +784,17 @@ namespace TextRPG
         public ItemCategory Category { get; protected set; } = ItemCategory.Consumable;
         public Rarity Rarity { get { return rarity; } protected set { rarity = value; } }
         public ConsumableCategory ConsumableCategory { get { return consumableCategory; } protected set { consumableCategory = value; } }
+        public int TargetId { get; set; }
 
         // Constructor
         public Consumables(string name, float coefficient, int price, ConsumableCategory consumableCategory, Rarity rarity)
         {
             this.name = name; this.coefficient = coefficient; this.price = price; this.consumableCategory = consumableCategory; this.rarity = rarity;
+        }
+        public Consumables(string name, float coefficient, int price, ConsumableCategory consumableCategory, Rarity rarity, int targetId)
+        {
+            this.name = name; this.coefficient = coefficient; this.price = price; this.consumableCategory = consumableCategory; this.rarity = rarity;
+            TargetId = targetId;
         }
 
         // Methods
@@ -798,7 +804,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public virtual void OnUsed(Character character)
         {
-            character.Consumables.Remove(this);
+            GameManager.SelectedCharacter.Consumables.Remove(this);
         }
 
         /// <summary>
@@ -987,19 +993,19 @@ namespace TextRPG
         public AttackStat AttackStat { get { return attackStat; } protected set { attackStat = value; } }
 
         // Constructor
-        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity = Rarity.Common)
-            : base(name, coefficient, price, ConsumableCategory.IncreaseAttack, rarity)
+        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity, int targetId)
+            : base(name, coefficient, price, ConsumableCategory.IncreaseAttack, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
         }
-        public AttackBuffPotion(AttackBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity)
+        public AttackBuffPotion(AttackBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity, potion.TargetId)
         {
             attackStat = new(potion.AttackStat);
         }
 
         [JsonConstructor]
-        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory)
-            : base(name, coefficient, price, consumableCategory, rarity)
+        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory, int targetId)
+            : base(name, coefficient, price, consumableCategory, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
         }
@@ -1011,6 +1017,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public override void OnUsed(Character character)
         {
+            TargetId = character.Id;
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
@@ -1064,19 +1071,19 @@ namespace TextRPG
         public DefendStat DefendStat { get { return defendStat; } protected set { defendStat = value; } }
 
         // Constructor
-        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity = Rarity.Common)
-            : base(name, coefficient, price, ConsumableCategory.IncreaseDefence, rarity)
+        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity, int targetId)
+            : base(name, coefficient, price, ConsumableCategory.IncreaseDefence, rarity, targetId)
         {
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
         }
-        public DefendBuffPotion(DefendBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity)
+        public DefendBuffPotion(DefendBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity, potion.TargetId)
         {
             defendStat = new(potion.DefendStat);
         }
 
         [JsonConstructor]
-        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory)
-            : base(name, coefficient, price, consumableCategory, rarity)
+        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory, int targetId)
+            : base(name, coefficient, price, consumableCategory, rarity, targetId)
         {
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
         }
@@ -1088,6 +1095,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public override void OnUsed(Character character)
         {
+            TargetId = character.Id;
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
@@ -1142,21 +1150,21 @@ namespace TextRPG
         public DefendStat DefendStat { get { return defendStat; } protected set { defendStat = value; } }
 
         // Constructor
-        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity = Rarity.Common)
-            : base(name, coefficient, price, ConsumableCategory.IncreaseAllStat, rarity)
+        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity, int targetId)
+            : base(name, coefficient, price, ConsumableCategory.IncreaseAllStat, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
         }
-        public AllBuffPotion(AllBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity)
+        public AllBuffPotion(AllBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity, potion.TargetId)
         {
             attackStat = new(potion.AttackStat);
             defendStat = new(potion.DefendStat);
         }
 
         [JsonConstructor]
-        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory)
-            : base(name, coefficient, price, consumableCategory, rarity)
+        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory, int targetId)
+            : base(name, coefficient, price, consumableCategory, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
@@ -1169,6 +1177,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public override void OnUsed(Character character)
         {
+            TargetId = character.Id;
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
