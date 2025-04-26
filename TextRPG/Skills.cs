@@ -145,7 +145,7 @@ namespace TextRPG
         private AttackStat CalculateAtkStat(Character character)
         {
             AttackStat newAtkStat = new(character.AttackStat);
-            if (character.EquippedWeapon != null) { newAtkStat += character.AttackStat; }
+            if (character.EquippedWeapon != null) { newAtkStat += character.EquippedWeapon.AttackStat; }
             foreach (var item in GameManager.Exposables)
             {
                 if (item is AttackBuffPotion atkPotion) { newAtkStat += atkPotion.AttackStat; }
