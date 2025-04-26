@@ -94,7 +94,7 @@ namespace TextRPG
         [JsonInclude] public float MaxHealth { get { return characterStat.MaxHealth; } protected set { characterStat.MaxHealth = value; } }
         [JsonInclude] public float Health { get { return characterStat.Health; } protected set { characterStat.Health = Math.Clamp(value, 0, MaxHealth); } }
         [JsonInclude] public float MaxMagicPoint { get { return characterStat.MaxMagicPoint; } protected set { characterStat.MaxMagicPoint = value; } }
-        [JsonInclude] public float MagicPoint { get { return characterStat.MagicPoint; } protected set { characterStat.MagicPoint = Math.Clamp(value,0, MaxMagicPoint); } }
+        [JsonInclude] public float MagicPoint { get { return characterStat.MagicPoint; } protected set { characterStat.MagicPoint = Math.Clamp(value, 0, MaxMagicPoint); } }
         [JsonInclude] public int CriticalHitChance { get { return characterStat.CriticalHitChance; } protected set { characterStat.CriticalHitChance = value; } }
         [JsonInclude] public float CriticalHitDamagePercentage { get { return characterStat.CriticalHitDamagePercentage; } protected set { characterStat.CriticalHitDamagePercentage = value; } }
         [JsonInclude] public int Level { get { return characterStat.Level; } protected set { characterStat.Level = value; } }
@@ -209,20 +209,20 @@ namespace TextRPG
 
             // Calculate the defend stat of character
             DefendStat newDefendStat = new(DefendStat);
-            foreach(var item in EquippedArmor) { if (item != null) newDefendStat += item.DefendStat; }
-            foreach(var item in GameManager.Exposables)
+            foreach (var item in EquippedArmor) { if (item != null) newDefendStat += item.DefendStat; }
+            foreach (var item in GameManager.Exposables)
             {
-                if(item is DefendBuffPotion defpotion) { newDefendStat += defpotion.DefendStat; }
+                if (item is DefendBuffPotion defpotion) { newDefendStat += defpotion.DefendStat; }
                 else if (item is AllBuffPotion allBuffPotion) { newDefendStat += allBuffPotion.DefendStat; }
             }
-            foreach(var skill in Skills)
+            foreach (var skill in Skills)
             {
                 if (skill is BuffSkill buffSkill)
                 {
                     if (buffSkill.Name.Equals("명상") && buffSkill.IsActive) { newDefendStat *= buffSkill.Coefficient; }
                 }
             }
-            
+
             // Calculated damage
             float calculatedDamage =
                 type == AttackType.Close ? Math.Max(1f, damage * (1f - newDefendStat.Defend / 100f)) :
@@ -290,22 +290,10 @@ namespace TextRPG
         public virtual new string ToString()
         {
             StringBuilder sb = new();
-            sb.AppendLine($"Name: {Name}").AppendLine($"MaxHealth : {MaxHealth}")
-              .AppendLine($"Health : {Health}").AppendLine($"MagicPoint : {MagicPoint}")
-              .AppendLine($"Level : {Level}")
-              .AppendLine($"AttackStat : {AttackStat}").AppendLine($"DefendStat : {DefendStat}")
-              .AppendLine($"Currency : {Currency}").AppendLine($"Exp : {Exp}");
-            foreach (Armor armor in Armors) { sb.Append(armor.ToString() + ", "); }
-            sb.AppendLine();
-            foreach (Weapon weapon in Weapons) { sb.Append(weapon.ToString() + ", "); }
-            sb.AppendLine();
-            foreach (Consumables consumable in Consumables) { sb.Append(consumable.ToString() + ", "); }
-            sb.AppendLine();
-            foreach (ImportantItem importantItem in ImportantItems) { sb.Append(importantItem.ToString() + ", "); }
-            sb.AppendLine();
-            foreach (Armor? equipped in EquippedArmor) { sb.Append(equipped?.ToString() + ", "); }
-            sb.AppendLine();
-            sb.Append(EquippedWeapon?.ToString());
+            sb.AppendLine($"| Lv {Level} | 이름: {Name} | 가격 : {Currency} |")
+              .AppendLine($"| HP : {MaxHealth} | MP : {MaxMagicPoint} |")
+              .AppendLine($"| {AttackStat} |")
+              .AppendLine($"| {DefendStat} |");
             return sb.ToString();
         }
     }
@@ -345,7 +333,7 @@ namespace TextRPG
 
         public override string ToString()
         {
-            return base.ToString() + $"\nJob : {Job}";
+            return base.ToString() + $"| 직업 : {Job} |";
         }
     }
 
@@ -385,7 +373,7 @@ namespace TextRPG
 
         public override string ToString()
         {
-            return base.ToString() + $"\nJob : {Job}";
+            return base.ToString() + $"| 직업 : {Job} |";
         }
     }
 
@@ -425,7 +413,7 @@ namespace TextRPG
 
         public override string ToString()
         {
-            return base.ToString() + $"\nJob : {Job}";
+            return base.ToString() + $"| 직업 : {Job} |";
         }
     }
 }
