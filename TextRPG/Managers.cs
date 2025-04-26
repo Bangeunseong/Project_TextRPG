@@ -1686,7 +1686,7 @@ namespace TextRPG
     /// </summary>
     static class MonsterLists
     {
-        public static Monster[] monsters = {
+        public static readonly Monster[] monsters = {
             new GoblinWarrior(new CharacterStat("Normal Goblin Warrior", 150, 10, 15, 1.6f, 1, new AttackStat(15f, 1f, 1f), new DefendStat(18f, 15f, 3f)), 20),
             new GoblinArcher(new CharacterStat("Normal Goblin Archer", 120, 30, 15, 1.6f, 1, new AttackStat(1f, 15f, 1f), new DefendStat(15f, 18f, 3f)), 20),
             new GoblinMage(new CharacterStat("Normal Goblin Mage", 100, 50, 15, 1.6f, 1, new AttackStat(1f, 1f, 15f), new DefendStat(3f, 15f, 18f)), 20),
