@@ -361,7 +361,7 @@ namespace TextRPG
             foreach (var quest in questList)
                 if (quest is KillMonsterQuest killMonsterQuest) Console.WriteLine($"{killMonsterQuest.ToString()}");
                 else if (quest is CollectItemQuest collectItemQuest) Console.WriteLine($"{collectItemQuest.ToString()}");
-            Console.Write("\nQuest를 선택하세요 : ");
+            Console.Write("\nQuest를 선택하세요 (취소하려면 0을 입력하세요) : ");
         }
 
         /// <summary>
@@ -382,7 +382,7 @@ namespace TextRPG
             foreach (var quest in questList)
                 if (quest is KillMonsterQuest killMonsterQuest) Console.WriteLine($"{killMonsterQuest.ToString()}");
                 else if (quest is CollectItemQuest collectItemQuest) Console.WriteLine($"{collectItemQuest.ToString()}");
-            Console.Write("\nQuest를 선택하세요: ");
+            Console.Write("\nQuest를 선택하세요 (취소하려면 0을 입력하세요) : ");
             return true;
         }
 
