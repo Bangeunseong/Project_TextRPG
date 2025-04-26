@@ -470,19 +470,20 @@ namespace TextRPG
             Console.WriteLine($"| \"Range Def.\" : {character.DefendStat.RangeDefend:F2} + ({defStat.RangeDefend:F2}) |");
             Console.WriteLine($"| \"Magic Def.\" : {character.DefendStat.MagicDefend:F2} + ({defStat.MagicDefend:F2}) |");
 
-            if (!character.EquippedArmor.Any())
+            var equippedArmors = character.EquippedArmor.Where(armor => armor != null);
+            if (equippedArmors.Any())
             {
                 Console.WriteLine("\n| .:~:..:~:. \"장착한 방어구\" .:~:..:~:. |");
-                foreach (Armor? armor in character.EquippedArmor) { if (armor != null) { Console.WriteLine($"| {armor} |"); } }
+                foreach (Armor? armor in equippedArmors) { Console.WriteLine($"| {armor} |"); }
             }
-            
-            if(character.EquippedWeapon != null)
+
+            if (character.EquippedWeapon != null)
             {
                 Console.WriteLine("\n| .:~:..:~:. \"장착한 무기\" .:~:..:~:. |");
                 Console.WriteLine($"| {character.EquippedWeapon} |");
             }
 
-            if (!character.Skills.Any())
+            if (character.Skills.Any())
             {
                 Console.WriteLine("\n| .:~:..:~:. \" 보유 스킬 \" .:~:..:~:. |");
                 foreach (Skill skill in character.Skills) { Console.WriteLine($"| {skill.ToString()} |"); }
