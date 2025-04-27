@@ -230,22 +230,4 @@ namespace TextRPG
             return sb.ToString();
         }
     }
-
-    /// <summary>
-    /// Skill Lists
-    /// </summary>
-    static class SkillLists
-    {
-        public static Skill[] ActiveSkills =
-        {
-            new ActiveSkill("파워 스트라이크","단일 타겟에 매우 큰 데미지를 입힌다.", 2.0f, 20, true),
-            new ActiveSkill("파이어 에로우", "모든 타켓에 데미지를 입힌다.", 1.5f, 15, false),
-            new ActiveSkill("썬더 볼트", "모든 타겟에 매우 큰 데미지를 입힌다.", 1.8f, 25, false),
-        };
-
-        public static Skill[] BuffSkills =
-        {
-            new BuffSkill("명상", "모든 스텟을 증가시킨다.", 1.8f, 20, 3, false),
-        };
-    }
 }
