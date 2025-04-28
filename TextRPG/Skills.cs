@@ -69,6 +69,7 @@ namespace TextRPG
             }
             
             character.OnMagicPointConsume(ManaCost);
+            Console.WriteLine("| .:~:. 플레이어 턴 .:~:. |");
             Console.WriteLine($"| 스킬_{Name}을 {target.Name}에 시전하였습니다! |");
 
             AttackType? type = character.EquippedWeapon?.AttackType;
@@ -97,6 +98,7 @@ namespace TextRPG
             }
             
             character.OnMagicPointConsume(ManaCost);
+            Console.WriteLine("| .:~:. 플레이어 턴 .:~:. |");
             Console.WriteLine($"| 스킬_{Name}을 모든 몬스터에 시전하였습니다! |");
 
             AttackType? type = character.EquippedWeapon?.AttackType;
@@ -145,11 +147,11 @@ namespace TextRPG
         private AttackStat CalculateAtkStat(Character character)
         {
             AttackStat newAtkStat = new(character.AttackStat);
-            if (character.EquippedWeapon != null) { newAtkStat += character.AttackStat; }
+            if (character.EquippedWeapon != null) { newAtkStat += character.EquippedWeapon.AttackStat; }
             foreach (var item in GameManager.Exposables)
             {
-                if (item is AttackBuffPotion atkPotion) { newAtkStat += atkPotion.AttackStat; }
-                else if (item is AllBuffPotion allPotion) { newAtkStat += allPotion.AttackStat; }
+                if (item is AttackBuffPotion atkPotion) { if(atkPotion.TargetId == character.Id) newAtkStat += atkPotion.AttackStat; }
+                else if (item is AllBuffPotion allPotion) { if (allPotion.TargetId == character.Id) newAtkStat += allPotion.AttackStat; }
             }
             foreach (var skill in character.Skills)
             {
@@ -227,23 +229,5 @@ namespace TextRPG
             sb.Append($", 지속 턴 : {TurnInterval}턴");
             return sb.ToString();
         }
-    }
-
-    /// <summary>
-    /// Skill Lists
-    /// </summary>
-    static class SkillLists
-    {
-        public static Skill[] ActiveSkills =
-        {
-            new ActiveSkill("파워 스트라이크","단일 타겟에 매우 큰 데미지를 입힌다.", 2.0f, 20, true),
-            new ActiveSkill("파이어 에로우", "모든 타켓에 데미지를 입힌다.", 1.5f, 15, false),
-            new ActiveSkill("썬더 볼트", "모든 타겟에 매우 큰 데미지를 입힌다.", 1.8f, 25, false),
-        };
-
-        public static Skill[] BuffSkills =
-        {
-            new BuffSkill("명상", "모든 스텟을 증가시킨다.", 1.8f, 20, 3, false),
-        };
     }
 }

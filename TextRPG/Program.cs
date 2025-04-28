@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 
 namespace TextRPG
@@ -40,6 +41,7 @@ namespace TextRPG
         private void InRest()
         {
             bool isSelected = false;
+            bool isMercenaryAppended = false;
             int option = 1;
 
             while (!isSelected)
@@ -50,29 +52,39 @@ namespace TextRPG
                 else if (opt < 1 || opt > 4) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
                 else { option = opt; }
 
+                while (true)
+                {
+                    Console.Write("용병들의 체력까지 회복하시겠습니까?, 절반가격을 용병 수 만큼 지불 (Y/N) : "); 
+                    string key = Console.ReadLine();
+                    if (key == null || key.Length < 1) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                    else if (key.Equals("Y", StringComparison.OrdinalIgnoreCase)) { isMercenaryAppended = true; break; }
+                    else if (key.Equals("N", StringComparison.OrdinalIgnoreCase)) { break; }
+                    else { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                }
+
                 switch (Math.Clamp(option, 1, 4))
                 {
                     case 1: Console.WriteLine("| 좋은 하루 되세요! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); return;
                     case 2:
-                        if (GameManager.SelectedCharacter.Currency < 40) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); }
-                        else 
+                        if (GameManager.SelectedCharacter.Currency < 40 + (isMercenaryAppended == true ? MercenaryManager.GetMercenaries().Count * 20 : 0)) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); }
+                        else
                         {
                             foreach (string line in Miscs.Rest1) Console.WriteLine(line);
-                            isSelected = true; 
+                            isSelected = true;
                         }
                         break;
                     case 3:
-                        if (GameManager.SelectedCharacter.Currency < 60) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); }
-                        else 
-                        { 
-                            foreach(string line in Miscs.Rest2) Console.WriteLine(line);
-                            isSelected = true; 
+                        if (GameManager.SelectedCharacter.Currency < 60 + (isMercenaryAppended == true ? MercenaryManager.GetMercenaries().Count * 30 : 0)) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); }
+                        else
+                        {
+                            foreach (string line in Miscs.Rest2) Console.WriteLine(line);
+                            isSelected = true;
                         }
                         break;
                     case 4:
-                        if (GameManager.SelectedCharacter.Currency < 80) { Console.WriteLine("| 돈이 부족합니다! |");Console.Write("\nPress enter to continue..."); Console.ReadLine(); }
-                        else 
-                        { 
+                        if (GameManager.SelectedCharacter.Currency < 80 + (isMercenaryAppended == true ? MercenaryManager.GetMercenaries().Count * 40 : 0)) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); }
+                        else
+                        {
                             foreach (string line in Miscs.Rest3) Console.WriteLine(line);
                             isSelected = true;
                         }
@@ -80,16 +92,30 @@ namespace TextRPG
                 }
             }
 
-            GameManager.SelectedCharacter.Currency -= (option * 20);
-            Console.WriteLine($"| {Math.Min(GameManager.SelectedCharacter.MaxHealth * (0.25f + (0.25f * (option - 2))), (GameManager.SelectedCharacter.MaxHealth - GameManager.SelectedCharacter.Health))}의 HP를 회복했습니다! |");
-            Console.WriteLine($"| {Math.Min(GameManager.SelectedCharacter.MaxMagicPoint * (0.25f + (0.25f * (option - 2))), (GameManager.SelectedCharacter.MaxMagicPoint - GameManager.SelectedCharacter.MagicPoint))}의 MP를 회복했습니다! |");
-            
+            GameManager.SelectedCharacter.Currency -= option * 20 + MercenaryManager.GetMercenaries().Count * option * 10;
+            Console.WriteLine($"| .:~:..:~:. {GameManager.SelectedCharacter.Name} .:~:..:~:. |");
+            Console.WriteLine($"| {Math.Min(GameManager.SelectedCharacter.MaxHealth * (0.25f + (0.25f * (option - 2))), (GameManager.SelectedCharacter.MaxHealth - GameManager.SelectedCharacter.Health)):F2}의 HP를 회복했습니다! |");
+            Console.WriteLine($"| {Math.Min(GameManager.SelectedCharacter.MaxMagicPoint * (0.25f + (0.25f * (option - 2))), (GameManager.SelectedCharacter.MaxMagicPoint - GameManager.SelectedCharacter.MagicPoint)):F2}의 MP를 회복했습니다! |");
+
+            Console.WriteLine("\n| .:~:..:~:. 고용한 용병들 .:~:..:~:. |");
+            foreach(var mercenary in MercenaryManager.GetMercenaries())
+            {
+                Console.WriteLine($"| {mercenary.Name}의 {Math.Min(mercenary.MaxHealth * (0.25f + (0.25f * (option - 2))), (mercenary.MaxHealth - mercenary.Health)):F2}의 HP를 회복했습니다! |");
+                Console.WriteLine($"| {mercenary.Name}의 {Math.Min(mercenary.MaxMagicPoint * (0.25f + (0.25f * (option - 2))), (mercenary.MaxMagicPoint - mercenary.MagicPoint)):F2}의 MP를 회복했습니다! |\n");
+            }
+
             GameManager.SelectedCharacter.OnHeal(GameManager.SelectedCharacter.MaxHealth * (0.25f + (0.25f * (option - 2))));
             GameManager.SelectedCharacter.OnMagicPointHeal(GameManager.SelectedCharacter.MaxMagicPoint * (0.25f + (0.25f * (option - 2))));
+            foreach (var mercenary in MercenaryManager.GetMercenaries())
+            {
+                mercenary.OnHeal(mercenary.MaxHealth * (0.25f + (0.25f * (option - 2))));
+                mercenary.OnMagicPointHeal(mercenary.MaxMagicPoint * (0.25f + (0.25f * (option - 2))));
+            }
+
             if (GameManager.GameTime == GameTime.Afternoon) GameManager.GameTime = GameTime.Night;
             else { GameManager.GameTime = GameTime.Afternoon; GameManager.RemoveAllBuffs(); }
-            
-            Console.Write("\nPress enter to continue...");
+
+            Console.Write("Press enter to continue...");
             Console.ReadLine();
         }
 
@@ -183,28 +209,28 @@ namespace TextRPG
             if (category == ItemCategory.Armor || category == ItemCategory.Weapon)
             {
                 int option = 1;
-                UIManager.InventoryUI_Equipment();
                 while (true)
                 {
+                    UIManager.InventoryUI_Equipment();
                     if (!int.TryParse(Console.ReadLine(), out int index)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
-                    else if(index < 1 || index > 4) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
+                    else if (index < 1 || index > 4) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
                     else { option = Math.Clamp(index, 1, 4); break; }
                 }
-                
+
                 switch (option)
-                    {
-                        case 1: break;
-                        case 2: wearable?.OnEquip(GameManager.SelectedCharacter); break;
-                        case 3: wearable?.OnUnequip(GameManager.SelectedCharacter); break;
-                        case 4: pickable?.OnDropped(GameManager.SelectedCharacter); break;
-                    }
+                {
+                    case 1: break;
+                    case 2: wearable?.OnEquip(GameManager.SelectedCharacter); break;
+                    case 3: wearable?.OnUnequip(GameManager.SelectedCharacter); break;
+                    case 4: pickable?.OnDropped(GameManager.SelectedCharacter); break;
+                }
             }
             else if (category == ItemCategory.Consumable)
             {
                 int option = 1;
-                UIManager.InventoryUI_Consumable();
                 while (true)
                 {
+                    UIManager.InventoryUI_Consumable();
                     if (!int.TryParse(Console.ReadLine(), out int index)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
                     else if (index < 1 || index > 2) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
                     else { option = Math.Clamp(index, 1, 2); break; }
@@ -213,18 +239,19 @@ namespace TextRPG
                 switch (option)
                 {
                     case 1: break;
-                    case 2: useable?.OnUsed(GameManager.SelectedCharacter); break;
+                    case 2: InInventory_UseItem(useable); break;
                 }
             }
             else
             {
                 int option = 1;
-                UIManager.InventoryUI_Misc();
                 while (true)
                 {
-                    if (!int.TryParse(Console.ReadLine(), out int index)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
-                    else if (index < 1 || index > 2) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); }
+                    UIManager.InventoryUI_Misc();
+                    if (!int.TryParse(Console.ReadLine(), out int index)) { Console.WriteLine("| 잘못된 입력입니다! |"); }
+                    else if (index < 1 || index > 2) { Console.WriteLine("| 잘못된 입력입니다! |"); }
                     else { option = Math.Clamp(index, 1, 2); break; }
+                    Console.Write("Press enter to continue..."); Console.ReadLine();
                 }
                 switch (option)
                 {
@@ -232,6 +259,24 @@ namespace TextRPG
                     case 2: pickable?.OnDropped(GameManager.SelectedCharacter); break;
                 }
             }
+        }
+
+        /// <summary>
+        /// Select target of using item
+        /// </summary>
+        /// <param name="useable"></param>
+        private void InInventory_UseItem(IUseable? useable)
+        {
+            int option = 1;
+            while (true)
+            {
+                UIManager.InventoryUI_Consumable_SelectTarget();
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); }
+                else if(opt < 1 || opt > MercenaryManager.GetMercenaries().Count + 1) { Console.WriteLine("| 잘못된 입력입니다! |"); }
+                else { option = Math.Clamp(opt, 1, MercenaryManager.GetMercenaries().Count + 1); break; }
+            }
+            if(option == 1) { useable?.OnUsed(GameManager.SelectedCharacter); }
+            else { useable?.OnUsed(MercenaryManager.GetMercenaries().ElementAt(option - 2)); }
         }
 
         /// <summary>
@@ -287,7 +332,7 @@ namespace TextRPG
 
                 if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
                 else if (opt < 0 || opt > 4) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
-                
+
                 switch (Math.Clamp(opt, 0, 4))
                 {
                     // Exit from shop
@@ -341,7 +386,7 @@ namespace TextRPG
         {
             switch (category)
             {
-                case ItemCategory.Armor:                   
+                case ItemCategory.Armor:
                     if (ItemLists.Armors.Length < ind || ind < 1)
                     {
                         Console.WriteLine("| 아이템이 존재하지 않습니다! |"); break;
@@ -399,6 +444,94 @@ namespace TextRPG
         }
 
         /// <summary>
+        /// Gives interface what player can do in mercenary shop.
+        /// </summary>
+        private void InMercenaryShop()
+        {
+            while (true)
+            {
+                UIManager.MercenaryShopUI(GameManager.SelectedCharacter);
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                else if (opt < 0 || opt > 3) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                switch (Math.Clamp(opt, 0, 3))
+                {
+                    case 1: return;
+                    case 2: InMercenaryShop_Contract(); break;
+                    case 3: InMercenaryShop_CancelContract(); break;
+                    default: Console.WriteLine("| 잘못된 입력입니다! |"); break;
+                }
+            }
+        }
+
+        /// <summary>
+        /// Contract Mechanism of mercenary in mercenary shop.
+        /// </summary>
+        private void InMercenaryShop_Contract()
+        {
+            var mercenaries = MercenaryManager.GenerateRandomMercenaries(new Random().Next(1, 5));
+
+            while (true)
+            {
+                if (!UIManager.MercenaryShopUI_ContractMercenary(GameManager.SelectedCharacter, mercenaries)) break;
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                else if (opt < 0 || opt > mercenaries.Count) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+
+                if (opt == 0) return;
+
+                while (true)
+                {
+                    Console.Write($"\"{mercenaries.ElementAt(opt - 1).Name}\" 와 정말로 계약할 것입니까? (Y/N) : ");
+                    string key = Console.ReadLine();
+                    if (key == null || key.Length < 1) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                    else if (key.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var mercenary = mercenaries.ElementAt(opt - 1);
+                        if (mercenary.Currency > GameManager.SelectedCharacter.Currency) { Console.WriteLine("| 돈이 부족합니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                        else if (MercenaryManager.GetMercenaries().Count() > 2) { Console.WriteLine("| 용병은 최대 3명까지 계약할 수 있습니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+
+                        GameManager.SelectedCharacter.Currency -= mercenary.Currency;
+                        MercenaryManager.AddMercenary(mercenary);
+                        mercenaries.Remove(mercenary);
+                        break;
+                    }
+                    else if (key.Equals("N", StringComparison.OrdinalIgnoreCase)) { break; }
+                    else { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Cancel Contract Mechanism of mercenary in mercenary shop.
+        /// </summary>
+        private void InMercenaryShop_CancelContract()
+        {
+            var mercenaries = MercenaryManager.GetMercenaries();
+
+            while (true)
+            {
+                if (!UIManager.MercenaryShopUI_CancelContract()) break;
+                if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+                else if (opt < 0 || opt > mercenaries.Count()) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); continue; }
+
+                if (opt == 0) return;
+                while (true)
+                {
+                    Console.Write($"\"{mercenaries.ElementAt(opt - 1).Name}\" 와 정말로 계약할 것입니까? (Y/N) : ");
+                    string key = Console.ReadLine();
+                    if (key == null || key.Length < 1) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                    else if (key.Equals("Y", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var mercenary = mercenaries.ElementAt(opt - 1);
+                        MercenaryManager.RemoveMercenary(mercenary);
+                        break;
+                    }
+                    else if (key.Equals("N", StringComparison.OrdinalIgnoreCase)) { break; }
+                    else { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); break; }
+                }
+            }
+        }
+
+        /// <summary>
         /// Gives interface what player can do in quest.
         /// </summary>
         private void InQuest()
@@ -430,7 +563,9 @@ namespace TextRPG
             UIManager.QuestUI_Contract();
 
             if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
-            else if (opt < 1 || opt > QuestManager.GetContractableQuests().Count()) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
+            else if (opt < 0 || opt > QuestManager.GetContractableQuests().Count()) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
+
+            if (opt == 0) return;
 
             while (true)
             {
@@ -458,7 +593,9 @@ namespace TextRPG
             if (!UIManager.QuestUI_Complete()) { Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
 
             if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
-            else if (opt < 1 || opt > QuestManager.GetCompletableQuests().Count()) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
+            else if (opt < 0 || opt > QuestManager.GetCompletableQuests().Count()) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
+
+            if (opt == 0) return;
 
             while (true)
             {
@@ -470,7 +607,7 @@ namespace TextRPG
             }
 
             var quest = QuestManager.GetCompletableQuests().ElementAt(opt - 1);
-            if(quest is KillMonsterQuest killMonsterQuest) killMonsterQuest.OnCompleted(character);
+            if (quest is KillMonsterQuest killMonsterQuest) killMonsterQuest.OnCompleted(character);
             else if (quest is CollectItemQuest collectItemQuest) collectItemQuest.OnCompleted(character);
 
             Console.Write("\nPress enter to continue...");
@@ -502,6 +639,7 @@ namespace TextRPG
             switch ((IdleOptions)(Math.Clamp(opt - 1, 0, Enum.GetValues(typeof(IdleOptions)).Length - 1)))
             {
                 case IdleOptions.Shop: InShop(); break;
+                case IdleOptions.MercenaryShop: InMercenaryShop(); break;
                 case IdleOptions.Quest: InQuest(); break;
                 case IdleOptions.Dungeon: InTown_MoveToDungeon(); break;
                 case IdleOptions.Rest: InRest(); break;
@@ -525,17 +663,19 @@ namespace TextRPG
             UIManager.DungeonUI(GameManager.SelectedCharacter, pathOptions);
 
             // Try parsing, if successed clamp Parsed Input
-            if (!int.TryParse(Console.ReadLine(), out int opt)) { 
-                GameManager.IsPathSelected = false; 
-                Console.WriteLine("| 잘못된 입력입니다! |"); 
-                Console.Write("\nPress enter to continue..."); Console.ReadLine(); 
-                return; 
+            if (!int.TryParse(Console.ReadLine(), out int opt))
+            {
+                GameManager.IsPathSelected = false;
+                Console.WriteLine("| 잘못된 입력입니다! |");
+                Console.Write("\nPress enter to continue..."); Console.ReadLine();
+                return;
             }
-            else if (opt < 1 || opt > (pathOptions.Length + Enum.GetValues(typeof(DungeonOptions)).Length - 4)) { 
-                GameManager.IsPathSelected = false; 
-                Console.WriteLine("| 잘못된 입력입니다! |"); 
-                Console.Write("\nPress enter to continue..."); Console.ReadLine(); 
-                return; 
+            else if (opt < 1 || opt > (pathOptions.Length + Enum.GetValues(typeof(DungeonOptions)).Length - 4))
+            {
+                GameManager.IsPathSelected = false;
+                Console.WriteLine("| 잘못된 입력입니다! |");
+                Console.Write("\nPress enter to continue..."); Console.ReadLine();
+                return;
             }
             opt = Math.Clamp(opt - 1, 0, (pathOptions.Length + Enum.GetValues(typeof(DungeonOptions)).Length - 4) - 1);
 
@@ -556,9 +696,10 @@ namespace TextRPG
             int index;
 
             if (!IsPathSelected) { index = GameManager.PrevPath; }
-            else { 
+            else
+            {
                 int random = new Random().Next(0, Miscs.path.Length);
-                while(random == GameManager.PrevPath) { random = new Random().Next(0, Miscs.path.Length); }
+                while (random == GameManager.PrevPath) { random = new Random().Next(0, Miscs.path.Length); }
                 GameManager.PrevPath = random;
                 index = random;
             }
@@ -616,7 +757,7 @@ namespace TextRPG
         private void InBattle()
         {
             UIManager.BattleUI(GameManager.SelectedCharacter);
-            
+
             if (!int.TryParse(Console.ReadLine(), out int opt)) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
             else if (opt < 1 || opt > Enum.GetValues(typeof(BattleOptions)).Length) { Console.WriteLine("| 잘못된 입력입니다! |"); Console.Write("\nPress enter to continue..."); Console.ReadLine(); return; }
 
@@ -634,6 +775,18 @@ namespace TextRPG
                 default: Console.WriteLine("| Something is wrong! |"); return;
             }
 
+            var random = new Random();
+            foreach(var mercenary in MercenaryManager.GetMercenaries())
+            {
+                if(SpawnManager.GetMonsterCount() <= 0) break;
+
+                if(mercenary.EquippedWeapon == null || mercenary.EquippedWeapon.AttackType == AttackType.Close)
+                    SpawnManager.spawnedMonsters.ElementAt(random.Next(0, SpawnManager.GetMonsterCount())).OnDamage(AttackType.Close, mercenary.AttackStat.Attack, false);
+                else if (mercenary.EquippedWeapon.AttackType == AttackType.Long)
+                    SpawnManager.spawnedMonsters.ElementAt(random.Next(0, SpawnManager.GetMonsterCount())).OnDamage(AttackType.Long, mercenary.AttackStat.RangeAttack, false);
+                else if (mercenary.EquippedWeapon.AttackType == AttackType.Magic)
+                    SpawnManager.spawnedMonsters.ElementAt(random.Next(0, SpawnManager.GetMonsterCount())).OnDamage(AttackType.Magic, mercenary.AttackStat.MagicAttack, false);
+            }
             // Check if all monsters are dead
             if (SpawnManager.GetMonsterCount() <= 0)
             {
@@ -641,12 +794,41 @@ namespace TextRPG
                 return;
             }
 
+            Console.Write("\nPress enter to continue..."); Console.ReadLine();
+
             // Monster Attack Mechanism
+            Console.WriteLine("\n| .:~:. 몬스터 턴 .:~:. |");
+            var mercenaries = MercenaryManager.GetMercenaries();
             foreach (Monster monster in SpawnManager.spawnedMonsters)
             {
-                if (monster.AttackType == AttackType.Close) GameManager.SelectedCharacter.OnDamage(AttackType.Close, monster.AttackStat.Attack, false);
-                else if (monster.AttackType == AttackType.Long) GameManager.SelectedCharacter.OnDamage(AttackType.Long, monster.AttackStat.RangeAttack, false);
-                else GameManager.SelectedCharacter.OnDamage(AttackType.Magic, monster.AttackStat.MagicAttack, false);
+                if (!mercenaries.Any())
+                {
+                    if (monster.AttackType == AttackType.Close) GameManager.SelectedCharacter.OnDamage(AttackType.Close, monster.AttackStat.Attack, false);
+                    else if (monster.AttackType == AttackType.Long) GameManager.SelectedCharacter.OnDamage(AttackType.Long, monster.AttackStat.RangeAttack, false);
+                    else GameManager.SelectedCharacter.OnDamage(AttackType.Magic, monster.AttackStat.MagicAttack, false);
+                }
+                else
+                {
+                    while (true)
+                    {
+                        int randomTarget = random.Next(0, 100);
+                        if (randomTarget % (mercenaries.Count + 1) == 0)
+                        {
+                            if (monster.AttackType == AttackType.Close) GameManager.SelectedCharacter.OnDamage(AttackType.Close, monster.AttackStat.Attack, false);
+                            else if (monster.AttackType == AttackType.Long) GameManager.SelectedCharacter.OnDamage(AttackType.Long, monster.AttackStat.RangeAttack, false);
+                            else GameManager.SelectedCharacter.OnDamage(AttackType.Magic, monster.AttackStat.MagicAttack, false);
+                            break;
+                        }
+                        else
+                        {
+                            if (!mercenaries.ElementAt((randomTarget % (mercenaries.Count + 1)) - 1).IsAlive) continue;
+                            if (monster.AttackType == AttackType.Close) mercenaries.ElementAt((randomTarget % (mercenaries.Count + 1)) - 1).OnDamage(AttackType.Close, monster.AttackStat.Attack, false);
+                            else if (monster.AttackType == AttackType.Long) mercenaries.ElementAt((randomTarget % (mercenaries.Count + 1)) - 1).OnDamage(AttackType.Long, monster.AttackStat.RangeAttack, false);
+                            else mercenaries.ElementAt((randomTarget % (mercenaries.Count + 1)) - 1).OnDamage(AttackType.Magic, monster.AttackStat.MagicAttack, false);
+                            break;
+                        }
+                    }
+                }
             }
 
             GameManager.CurrentTurn++;
@@ -672,6 +854,7 @@ namespace TextRPG
 
             if (opt <= 0) return false;
 
+            Console.WriteLine("| .:~:. 플레이어 턴 .:~:. |");
             if (opt > 0 && opt <= SpawnManager.GetMonsterCount())
             {
                 AttackType? type = GameManager.SelectedCharacter.EquippedWeapon?.AttackType;
@@ -697,7 +880,7 @@ namespace TextRPG
             while (true)
             {
                 UIManager.ShowSkillList(GameManager.SelectedCharacter);
-                
+
                 if (!int.TryParse(Console.ReadLine(), out int ind)) Console.WriteLine("| 잘못된 입력입니다! |");
                 else if (ind < 0 || ind > GameManager.SelectedCharacter.Skills.Count) Console.WriteLine("| 잘못된 입력입니다! |");
                 else { skillOpt = Math.Clamp(ind, 0, GameManager.SelectedCharacter.Skills.Count); break; }
@@ -759,13 +942,11 @@ namespace TextRPG
         {
             AttackStat newAtkStat = new(character.AttackStat);
             if (character.EquippedWeapon != null) { newAtkStat += character.EquippedWeapon.AttackStat; }
-            Console.WriteLine($"{newAtkStat}");
             foreach (var item in GameManager.Exposables)
             {
-                if (item is AttackBuffPotion atkPotion) { newAtkStat += atkPotion.AttackStat; }
-                else if (item is AllBuffPotion allPotion) { newAtkStat += allPotion.AttackStat; }
+                if (item is AttackBuffPotion atkPotion) { if (atkPotion.TargetId == character.Id) newAtkStat += atkPotion.AttackStat; }
+                else if (item is AllBuffPotion allPotion) { if (allPotion.TargetId == character.Id) newAtkStat += allPotion.AttackStat; }
             }
-            Console.WriteLine($"{newAtkStat}");
             foreach (var skill in character.Skills)
             {
                 if (skill is BuffSkill buffSkill)
@@ -773,7 +954,6 @@ namespace TextRPG
                     if (buffSkill.IsActive) newAtkStat *= buffSkill.Coefficient;
                 }
             }
-            Console.WriteLine($"{newAtkStat}");
             return newAtkStat;
         }
 

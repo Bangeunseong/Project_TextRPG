@@ -91,6 +91,21 @@ namespace TextRPG
         }
 
         /// <summary>
+        /// Show Inventory UI - Select Target for Consumable
+        /// </summary>
+        public static void InventoryUI_Consumable_SelectTarget()
+        {
+            Console.WriteLine("\n| .:~:..:~:. \"팀원들\" .:~:..:~:. |");
+            Console.WriteLine("| 1. 주인공 |");
+            int i = 1;
+            foreach (var mercenary in MercenaryManager.GetMercenaries())
+            {
+                Console.WriteLine($"| {++i}. {mercenary.Name} |");
+            }
+            Console.Write("아이템을 사용할 팀원을 선택하세요 : ");
+        }
+
+        /// <summary>
         /// Show Shop UI
         /// </summary>
         /// <param name="character"></param>
@@ -187,6 +202,66 @@ namespace TextRPG
             foreach (ImportantItem item in character.ImportantItems) { Console.WriteLine($"| {i++}. {item} |"); }
             Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
             Console.Write("\n무엇을 판매하겠습니까? ( Type [ Category,Index ], 취소하려면 exit을 입력하세요) : ");
+        }
+
+        /// <summary>
+        /// Mercenary Shop UI
+        /// </summary>
+        /// <param name="character"></param>
+        public static void MercenaryShopUI(Character character)
+        {
+            Console.Clear();
+            Console.WriteLine("| .:~:. Welcome to Henry's Shop! .:~:. |");
+            foreach (string line in Miscs.Henry) Console.WriteLine(line);
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
+
+            Console.WriteLine($"\n| Gold : {character.Currency} |");
+            Console.WriteLine("| 1. 뒤로가기 |");
+            Console.WriteLine("| 2. 용병 계약 |");
+            Console.WriteLine("| 3. 용병 계약해제 |");
+            Console.Write("\n원하는 기능을 선택하세요 : ");
+
+        }
+
+        /// <summary>
+        /// Mercenary Shop UI -> Having a contract with mercenary
+        /// </summary>
+        /// <param name="character"></param>
+        /// <param name="mercenaries"></param>
+        public static bool MercenaryShopUI_ContractMercenary(Character character, List<Character> mercenaries)
+        {
+            Console.Clear();
+            Console.WriteLine("| .:~:. Welcome to Henry's Shop! .:~:. |");
+            foreach (string line in Miscs.Henry) Console.WriteLine(line);
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
+
+            if (mercenaries == null || !mercenaries.Any()) { Console.WriteLine("\n| 죄송합니다, 계약할 수 있는 용병이 현재 없습니다! |"); Console.Write("Press enter to continue..."); Console.ReadLine(); return false; }
+
+            Console.WriteLine($"\n| Gold : {character.Currency} |");
+            int i = 1;
+            foreach (var mercenary in mercenaries) { Console.WriteLine($"[{i++}]\n{mercenary.ToString()}"); }
+            Console.Write("계약하고자 하는 용병을 선택하세요 ( 취소하려면 0을 입력하세요 ) : ");
+            return true;
+        }
+
+        /// <summary>
+        /// Mercenary Shop UI -> Cancel a contract of mercenary
+        /// </summary>
+        public static bool MercenaryShopUI_CancelContract()
+        {
+            var mercenaries = MercenaryManager.GetMercenaries();
+
+            Console.Clear();
+            Console.WriteLine("| .:~:. Welcome to Henry's Shop! .:~:. |");
+            foreach (string line in Miscs.Henry) Console.WriteLine(line);
+            Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
+
+            if (!mercenaries.Any()) { Console.WriteLine("\n| 죄송합니다, 계약해지를 할 수 있는 용병이 없습니다! |"); Console.Write("\nPress enter key to continue..."); Console.ReadLine(); return false; }
+
+            int i = 1;
+            foreach (var mercenary in mercenaries) { Console.WriteLine($"[{i++}] {mercenary.ToString()}\n"); }
+            Console.Write("계약해지를 하고자 하는 용병을 선택하세요 ( 취소하려면 0을 입력하세요 ) : ");
+            return true;
         }
 
         /// <summary>
@@ -300,7 +375,7 @@ namespace TextRPG
             foreach (var quest in questList)
                 if (quest is KillMonsterQuest killMonsterQuest) Console.WriteLine($"{killMonsterQuest.ToString()}");
                 else if (quest is CollectItemQuest collectItemQuest) Console.WriteLine($"{collectItemQuest.ToString()}");
-            Console.Write("\nQuest를 선택하세요 : ");
+            Console.Write("\nQuest를 선택하세요 (취소하려면 0을 입력하세요) : ");
         }
 
         /// <summary>
@@ -321,7 +396,7 @@ namespace TextRPG
             foreach (var quest in questList)
                 if (quest is KillMonsterQuest killMonsterQuest) Console.WriteLine($"{killMonsterQuest.ToString()}");
                 else if (quest is CollectItemQuest collectItemQuest) Console.WriteLine($"{collectItemQuest.ToString()}");
-            Console.Write("\nQuest를 선택하세요: ");
+            Console.Write("\nQuest를 선택하세요 (취소하려면 0을 입력하세요) : ");
             return true;
         }
 
@@ -409,17 +484,31 @@ namespace TextRPG
             Console.WriteLine($"| \"Range Def.\" : {character.DefendStat.RangeDefend:F2} + ({defStat.RangeDefend:F2}) |");
             Console.WriteLine($"| \"Magic Def.\" : {character.DefendStat.MagicDefend:F2} + ({defStat.MagicDefend:F2}) |");
 
-            Console.WriteLine("\n| .:~:..:~:. \"장착한 방어구\" .:~:..:~:. |");
-            int i = 0;
-            foreach (Armor? armor in character.EquippedArmor) { if (armor != null) { Console.WriteLine($"| {armor} |"); i++; } }
-            if (i == 0) { Console.WriteLine("| .:~:. 장착된 방어구가 없습니다! .:~:. |"); }
+            var equippedArmors = character.EquippedArmor.Where(armor => armor != null);
+            if (equippedArmors.Any())
+            {
+                Console.WriteLine("\n| .:~:..:~:. \"장착한 방어구\" .:~:..:~:. |");
+                foreach (Armor? armor in equippedArmors) { Console.WriteLine($"| {armor} |"); }
+            }
 
-            Console.WriteLine("\n| .:~:..:~:. \"장착한 무기\" .:~:..:~:. |");
-            if (character.EquippedWeapon != null) Console.WriteLine($"| {character.EquippedWeapon} |");
-            else Console.WriteLine("| .:~:. 장착된 무기가 없습니다! .:~:. |");
+            if (character.EquippedWeapon != null)
+            {
+                Console.WriteLine("\n| .:~:..:~:. \"장착한 무기\" .:~:..:~:. |");
+                Console.WriteLine($"| {character.EquippedWeapon} |");
+            }
 
-            Console.WriteLine("\n| .:~:..:~:. \" 보유 스킬 \" .:~:..:~:. |");
-            foreach (Skill skill in character.Skills) { Console.WriteLine($"| {skill.ToString()} |"); }
+            if (character.Skills.Any())
+            {
+                Console.WriteLine("\n| .:~:..:~:. \" 보유 스킬 \" .:~:..:~:. |");
+                foreach (Skill skill in character.Skills) { Console.WriteLine($"| {skill.ToString()} |"); }
+            }
+
+            var mercenaries = MercenaryManager.GetMercenaries();
+            if (mercenaries.Any())
+            {
+                Console.WriteLine("\n| .:~:..:~:. \"용병\" .:~:..:~:. |");
+                foreach (var mercenary in mercenaries) { Console.WriteLine($"| {mercenary.ToString()} |"); }
+            }
             Console.Write("\nPress enter to continue..."); Console.ReadLine();
         }
 
@@ -550,9 +639,16 @@ namespace TextRPG
             Console.WriteLine($"| .:~:. 사냥한 몬스터 : {GameManager.KilledMonsterCount}, 목표량 : {GameManager.Quota} .:~:. |");
             Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
 
-            Console.WriteLine($"\n| HP : {character.Health:F2} | MP : {character.MagicPoint:F2} |");
-            Console.WriteLine($"| Gold : {character.Currency} |");
-            Console.WriteLine();
+            Console.WriteLine("\n| .:~:..:~:. 주인공 .:~:..:~:. |");
+            Console.WriteLine($"| Lv{character.Level} | 이름 : {character.Name} |");
+            Console.WriteLine($"| HP : {character.Health:F2} | MP : {character.MagicPoint:F2} | Gold : {character.Currency} |");
+            Console.WriteLine("\n| .:~:..:~:. 용병 .:~:..:~:. |");
+            foreach (var mercenary in MercenaryManager.GetMercenaries())
+            {
+                Console.WriteLine($"| Lv{mercenary.Level} | 이름 : {mercenary.Name} |");
+                Console.WriteLine($"| HP : {mercenary.Health:F2} | MP : {mercenary.MagicPoint:F2} |");
+            }
+
             for (int i = 1; i <= pathOptions.Length; i++)
             {
                 Console.WriteLine($"| {i}. {(DungeonOptions)pathOptions[i - 1]} |");
@@ -576,14 +672,20 @@ namespace TextRPG
             foreach (var line in Miscs.BattleDesign) Console.WriteLine(line);
             Console.WriteLine("| .:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:..:~:. |");
             Console.WriteLine($"\n| .:~:..:~:. 현재 시간 : {GameManager.GameTime} .:~:..:~:. |");
-            Console.WriteLine($"| Lv : {character.Level} | Gold : {character.Currency} |");
+            Console.WriteLine($"| Lv{character.Level} | Gold : {character.Currency} |");
             Console.WriteLine($"| HP : {character.Health:F2} | MP : {character.MagicPoint:F2} |");
-
             foreach (Skill skill in character.Skills)
             {
                 if (skill is BuffSkill buffSkill && buffSkill.IsActive)
                     Console.WriteLine($"| {buffSkill.Name} 효과의 남은 턴 ({GameManager.CurrentTurn - buffSkill.UsedTurn}/{buffSkill.TurnInterval}) | ");
 
+            }
+            
+            Console.WriteLine("\n| .:~:..:~:. 용병 .:~:..:~:. |");
+            foreach (var mercenary in MercenaryManager.GetMercenaries())
+            {
+                Console.WriteLine($"| Lv{mercenary.Level} | 이름 : {mercenary.Name} |");
+                Console.WriteLine($"| HP : {mercenary.Health:F2} | MP : {mercenary.MagicPoint:F2} |");
             }
 
             Console.WriteLine("\n| .:~:. 몬스터 정보 .:~:. |");
@@ -1537,6 +1639,113 @@ namespace TextRPG
     }
 
     /// <summary>
+    /// Lists of items
+    /// </summary>
+    static class ItemLists
+    {
+        public static readonly Armor[] Armors = {
+            new Helmet("사슬 헬멧", new DefendStat(3.1f, 2.4f, 1.2f), 15, Rarity.Common),
+            new ChestArmor("사슬 갑옷상의", new DefendStat(5.1f, 4.2f, 3.3f), 30, Rarity.Common),
+            new LegArmor("사슬 갑옷하의", new DefendStat(1.5f, 1.3f, 0f), 8, Rarity.Common),
+            new FootArmor("사슬 장화", new DefendStat(0.5f, 0.3f, 0.1f), 4, Rarity.Common),
+            new Gauntlet("사슬 건틀렛", new DefendStat(1.5f, 1.3f, 0f), 8, Rarity.Common),
+            new Helmet("철제 헬멧", new DefendStat(5.1f, 4.2f, 3.3f), 50, Rarity.Exclusive),
+            new ChestArmor("철제 갑옷상의", new DefendStat(7.1f, 6.2f, 5.3f), 80, Rarity.Exclusive),
+            new LegArmor("철제 갑옷하의", new DefendStat(3.5f, 3.3f, 1.2f), 40, Rarity.Exclusive),
+            new FootArmor("철제 장화", new DefendStat(1.5f, 1.3f, 0.6f), 30, Rarity.Exclusive),
+            new Gauntlet("철제 건틀렛", new DefendStat(3.5f, 3.3f, 1f), 40, Rarity.Exclusive),
+            new Helmet("티타늄 헬멧", new DefendStat(7.1f, 6.2f, 5.3f), 120, Rarity.Rare),
+            new ChestArmor("티타늄 갑옷상의", new DefendStat(9.1f, 8.2f, 7.3f), 180, Rarity.Rare),
+            new LegArmor("티타늄 갑옷하의", new DefendStat(5.5f, 5.3f, 3.2f), 100, Rarity.Rare),
+            new FootArmor("티타늄 장화", new DefendStat(3.5f, 3.3f, 1.6f), 80, Rarity.Rare),
+            new Gauntlet("티타늄 건틀렛", new DefendStat(5.5f, 5.3f, 1.2f), 100, Rarity.Rare),
+            new Helmet("다이아몬드 헬멧", new DefendStat(10.1f, 9.2f, 8.3f), 260, Rarity.Hero),
+            new ChestArmor("다이아몬드 갑옷상의", new DefendStat(12.1f, 11.2f, 10.3f), 480, Rarity.Hero),
+            new LegArmor("다이아몬드 갑옷하의", new DefendStat(8.5f, 8.3f, 6.2f), 220, Rarity.Hero),
+            new FootArmor("다이아몬드 장화", new DefendStat(6.5f, 6.3f, 4.6f), 160, Rarity.Hero),
+            new Gauntlet("다이아몬드 건틀렛", new DefendStat(10.5f, 8.3f, 2.2f), 220, Rarity.Hero),
+            new Helmet("\"던\"의 헬멧", new DefendStat(20.1f, 19.2f, 18.3f), 1000, Rarity.Legend),
+            new ChestArmor("\"던\"의 갑옷상의", new DefendStat(22.1f, 21.2f, 20.3f), 1500, Rarity.Legend),
+            new LegArmor("\"던\"의 갑옷하의", new DefendStat(18.5f, 18.3f, 16.2f), 650, Rarity.Legend),
+            new FootArmor("\"던\"의 장화", new DefendStat(16.5f, 16.3f, 14.6f), 500, Rarity.Legend),
+            new Gauntlet("\"던\"의 건틀렛", new DefendStat(18.5f, 18.3f, 12.2f), 650, Rarity.Legend),
+        };
+
+        public static readonly Weapon[] Weapons = {
+            new Sword("목검", new AttackStat(7f, 0f, 0f), 10, Rarity.Common),
+            new Bow("새총", new AttackStat(0f, 7f, 0f), 10, Rarity.Common),
+            new Staff("나무 스태프", new AttackStat(0f, 0f, 7f), 10, Rarity.Common),
+            new Sword("철제 검", new AttackStat(12.5f, 0f, 0f), 120, Rarity.Exclusive),
+            new Bow("사냥꾼의 활", new AttackStat(0f, 12.5f, 0f), 120, Rarity.Exclusive),
+            new Staff("고목나무 스태프", new AttackStat(0f, 0f, 12.5f), 120, Rarity.Exclusive),
+            new Sword("티타늄 검", new AttackStat(17.5f, 0f, 0f), 250, Rarity.Rare),
+            new Bow("각궁", new AttackStat(0f, 17.5f, 0f), 250, Rarity.Rare),
+            new Staff("버드나무 스태프", new AttackStat(0f, 0f, 17.5f), 250, Rarity.Rare),
+            new Sword("다이아몬드 검", new AttackStat(25f, 0f, 0f), 500, Rarity.Hero),
+            new Bow("신궁", new AttackStat(0f, 25f, 0f), 500, Rarity.Hero),
+            new Staff("딱총나무 스태프", new AttackStat(0f, 0f, 25f), 500, Rarity.Hero),
+            new Sword("\"던\"의 검", new AttackStat(60f, 0f, 0f), 1000, Rarity.Legend),
+            new Bow("\"던\"의 활", new AttackStat(0f, 60f, 0f), 1000, Rarity.Legend),
+            new Staff("\"던\"의 스태프", new AttackStat(0f, 0f, 60f), 1000, Rarity.Legend),
+        };
+
+        public static readonly Consumables[] Consumables =
+        {
+            new HealthPotion("소형 HP 포션", 20, 15, Rarity.Common),
+            new HealthPotion("중형 HP 포션", 50, 80, Rarity.Exclusive),
+            new HealthPotion("대형 HP 포션", 100, 150, Rarity.Rare),
+            new MagicPotion("소형 MP 포션", 15, 30, Rarity.Common),
+            new MagicPotion("중형 MP 포션", 60, 130, Rarity.Exclusive),
+            new MagicPotion("대형 MP 포션", 120, 260, Rarity.Rare),
+            new AttackBuffPotion("하급 공격력 증가 포션", 5, 10, Rarity.Common, 0),
+            new AttackBuffPotion("중급 공격력 증가 포션", 10, 30, Rarity.Exclusive, 0),
+            new AttackBuffPotion("상급 공격력 증가 포션", 15, 50, Rarity.Rare, 0),
+            new DefendBuffPotion("하급 방어력 증가 포션", 5, 10, Rarity.Common, 0),
+            new DefendBuffPotion("중급 방어력 증가 포션", 10, 30, Rarity.Exclusive, 0),
+            new DefendBuffPotion("상급 방어력 증가 포션", 15, 50, Rarity.Rare, 0),
+            new AllBuffPotion("중급 모든 스텟 증가 포션", 10, 150, Rarity.Rare, 0),
+            new AllBuffPotion("상급 모든 스텟 증가 포션", 30, 350, Rarity.Hero, 0),
+            new AllBuffPotion("최상급 모든 스텟 증가 포션", 100, 1000, Rarity.Legend, 0),
+        };
+
+        public static readonly ImportantItem[] ImportantItems =
+        {
+            new GoblinEar("고블린의 찢어진 귀", 10, Rarity.Common),
+            new GoblinEye("고블린의 사슬어린 눈", 10, Rarity.Common),
+        };
+    }
+
+    /// <summary>
+    /// MonsterLists Class
+    /// </summary>
+    static class MonsterLists
+    {
+        public static readonly Monster[] monsters = {
+            new GoblinWarrior(new CharacterStat("Normal Goblin Warrior", 150, 10, 15, 1.6f, 1, new AttackStat(15f, 1f, 1f), new DefendStat(18f, 15f, 3f)), 20),
+            new GoblinArcher(new CharacterStat("Normal Goblin Archer", 120, 30, 15, 1.6f, 1, new AttackStat(1f, 15f, 1f), new DefendStat(15f, 18f, 3f)), 20),
+            new GoblinMage(new CharacterStat("Normal Goblin Mage", 100, 50, 15, 1.6f, 1, new AttackStat(1f, 1f, 15f), new DefendStat(3f, 15f, 18f)), 20),
+        };
+    }
+
+    /// <summary>
+    /// Skill Lists
+    /// </summary>
+    static class SkillLists
+    {
+        public static Skill[] ActiveSkills =
+        {
+            new ActiveSkill("파워 스트라이크","단일 타겟에 매우 큰 데미지를 입힌다.", 2.0f, 20, true),
+            new ActiveSkill("파이어 에로우", "모든 타켓에 데미지를 입힌다.", 1.5f, 15, false),
+            new ActiveSkill("썬더 볼트", "모든 타겟에 매우 큰 데미지를 입힌다.", 1.8f, 25, false),
+        };
+
+        public static Skill[] BuffSkills =
+        {
+            new BuffSkill("명상", "모든 스텟을 증가시킨다.", 1.8f, 20, 3, false),
+        };
+    }
+
+    /// <summary>
     /// Manage quests
     /// </summary>
     static class QuestManager
@@ -1905,19 +2114,19 @@ namespace TextRPG
                     Console.WriteLine("| 전사를 선택하였습니다! |");
                     Console.Write("전사의 이름을 작성해주세요 : ");
                     name = Console.ReadLine() ?? "Jake"; if (name.Length < 1) name = "Jake";
-                    SelectedCharacter = new Warrior(new CharacterStat(name, 150, 50, 15, 1.6f, 1, new AttackStat(25f, 10f, 8f), new DefendStat(25, 15, 5)), 250, 0);
+                    SelectedCharacter = new Warrior(0, new CharacterStat(name, 150, 50, 15, 1.6f, 1, new AttackStat(25f, 10f, 8f), new DefendStat(25, 15, 5)), 250, 0);
                     break;
                 case Job.Wizard:
                     Console.WriteLine("| 법사를 선택하였습니다! |");
                     Console.Write("법사의 이름을 작성해주세요 : ");
                     name = Console.ReadLine() ?? "Lucy"; if (name.Length < 1) name = "Lucy";
-                    SelectedCharacter = new Wizard(new CharacterStat(name, 100, 80, 15, 1.6f, 1, new AttackStat(8f, 10f, 25f), new DefendStat(5, 10, 30)), 250, 0);
+                    SelectedCharacter = new Wizard(0, new CharacterStat(name, 100, 80, 15, 1.6f, 1, new AttackStat(8f, 10f, 25f), new DefendStat(5, 10, 30)), 250, 0);
                     break;
                 case Job.Archer:
                     Console.WriteLine("| 궁수를 선택하였습니다! |");
                     Console.Write("궁수의 이름을 작성해주세요 : ");
                     name = Console.ReadLine() ?? "Omen"; if (name.Length < 1) name = "Omen";
-                    SelectedCharacter = new Archer(new CharacterStat(name, 120, 65, 15, 1.6f, 1, new AttackStat(10f, 25f, 8f), new DefendStat(15, 25, 5)), 250, 0);
+                    SelectedCharacter = new Archer(0, new CharacterStat(name, 120, 65, 15, 1.6f, 1, new AttackStat(10f, 25f, 8f), new DefendStat(15, 25, 5)), 250, 0);
                     break;
             }
 
@@ -2113,13 +2322,17 @@ namespace TextRPG
                 KilledMonsterCount = KilledMonsterCount,
                 GameState = GameState,
                 GameTime = GameTime,
-                Exposables = Exposables.ToList()
+                Exposables = Exposables.ToList(),
+                Mercenaries = MercenaryManager.GetMercenaries(),
             };
 
             var gameOptions = new JsonSerializerOptions
             {
                 Converters = {
-                    new ConsumableConverter(),
+                    new ConsumableConverter(), new CharacterConverter(),
+                    new ArmorConverter(), new WeaponConverter(), new ConsumableConverter(),
+                    new ImportantItemConverter(), new SkillConverter(),
+                    new EquippedArmorConverter(),
                 },
                 WriteIndented = true
             };
@@ -2178,7 +2391,10 @@ namespace TextRPG
             var gameOptions = new JsonSerializerOptions
             {
                 Converters = {
-                    new ConsumableConverter(),
+                    new ConsumableConverter(), new CharacterConverter(),
+                    new ArmorConverter(), new WeaponConverter(), new ConsumableConverter(),
+                    new ImportantItemConverter(), new SkillConverter(),
+                    new EquippedArmorConverter(),
                 },
                 WriteIndented = true
             };
@@ -2213,7 +2429,169 @@ namespace TextRPG
             GameState = gameData.GameState;
             GameTime = gameData.GameTime;
             Exposables = new Queue<Consumables>(gameData.Exposables);
+            MercenaryManager.SetMercenaries(gameData.Mercenaries);
         }
         #endregion
+    }
+
+    /// <summary>
+    /// Mercenaries -> Purchasable Characters
+    /// </summary>
+    static class MercenaryManager
+    {
+        // Field
+        private static LinkedList<Character> MercenaryList = new LinkedList<Character>();
+
+        // Methods
+        
+        /// <summary>
+        /// Get all mercenaries added to the list
+        /// </summary>
+        /// <returns>List of Added mercenaries</returns>
+        public static LinkedList<Character> GetMercenaries() { return MercenaryList; }
+
+        public static void SetMercenaries(LinkedList<Character> mercenaries) 
+        { 
+            foreach(var mercenary in mercenaries)
+            {
+                mercenary.OnDeath += () => { Console.WriteLine($"| {mercenary.Name}이 죽었습니다!"); RemoveMercenary(mercenary); };
+                foreach (var weapon in mercenary.Weapons)
+                    if (weapon.IsEquipped) mercenary.EquippedWeapon = weapon;
+            }
+            MercenaryList = mercenaries; 
+        }
+
+        /// <summary>
+        /// Add mercenary to the list
+        /// </summary>
+        /// <param name="mercenary"></param>
+        public static void AddMercenary(Character mercenary) { MercenaryList.AddLast(mercenary); }
+
+        /// <summary>
+        /// Remove mercenary from the list
+        /// </summary>
+        /// <param name="mercenary"></param>
+        public static void RemoveMercenary(Character mercenary) { MercenaryList.Remove(mercenary); }
+
+        /// <summary>
+        /// Remove all mercenaries
+        /// </summary>
+        public static void RemoveAllMercenaries() { MercenaryList.Clear(); }
+
+        /// <summary>
+        /// Generates Random Mercenaries
+        /// </summary>
+        /// <param name="count"></param>
+        /// <returns></returns>
+        public static List<Character> GenerateRandomMercenaries(int count)
+        {
+            var mercenaries = new List<Character>();
+            for (int i = 0; i < count; i++)
+            {
+                var mercenary = GenerateRandomMercenary();
+                GiveRandomWeapon(mercenary);
+                mercenary.OnDeath += () => { Console.WriteLine($"| {mercenary.Name}이 죽었습니다!"); RemoveMercenary(mercenary); };
+                mercenaries.Add(mercenary);
+            }
+            return mercenaries;
+        }
+
+        /// <summary>
+        /// Give Random Weapon to the mercenary
+        /// </summary>
+        /// <param name="mercenary"></param>
+        private static void GiveRandomWeapon(Character mercenary)
+        {
+            var random = new Random();
+            List<Weapon> weapons = new();
+            if(mercenary is Warrior)
+            {
+                weapons = ItemLists.Weapons.Where(w => w is Sword && (mercenary.Level < 10 ? w.Rarity == Rarity.Common : 
+                (mercenary.Level < 20 ? w.Rarity == Rarity.Common : 
+                (mercenary.Level < 40 ? w.Rarity == Rarity.Rare : 
+                (mercenary.Level < 60 ? w.Rarity == Rarity.Hero :
+                w.Rarity == Rarity.Legend))))).ToList();
+            } else if(mercenary is Archer)
+            {
+                weapons = ItemLists.Weapons.Where(w => w is Bow && (mercenary.Level < 10 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 20 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 40 ? w.Rarity == Rarity.Rare :
+                (mercenary.Level < 60 ? w.Rarity == Rarity.Hero :
+                w.Rarity == Rarity.Legend))))).ToList();
+            } else if(mercenary is Wizard)
+            {
+                weapons = ItemLists.Weapons.Where(w => w is Staff && (mercenary.Level < 10 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 20 ? w.Rarity == Rarity.Common :
+                (mercenary.Level < 40 ? w.Rarity == Rarity.Rare :
+                (mercenary.Level < 60 ? w.Rarity == Rarity.Hero :
+                w.Rarity == Rarity.Legend))))).ToList();
+            }
+            if (!weapons.Any()) return;
+
+            var weapon = weapons.First();
+            if (weapon is Sword sword)
+                mercenary.Weapons.Add(new Sword(sword));
+            else if (weapon is Bow bow)
+                mercenary.Weapons.Add(new Bow(bow));
+            else if (weapon is Staff staff)
+                mercenary.Weapons.Add(new Staff(staff));
+
+             mercenary.Weapons.First().OnEquip(mercenary);
+        }
+
+        /// <summary>
+        /// Generate Random Mercenary
+        /// </summary>
+        /// <returns></returns>
+        /// <exception cref="ArgumentOutOfRangeException"></exception>
+        private static Character GenerateRandomMercenary()
+        {
+            var random = new Random();
+            var names = new[] { "John", "Jane", "Bob", "Alice", "Mike", "Sara" };
+            var name = names[random.Next(names.Length)];
+            var level = GameManager.SelectedCharacter.Level;
+            var maxHealth = random.Next(120, 150) + (level - 1) * 15;
+            var maxMagicPoint = random.Next(50, 80) + (level - 1) * 10;
+            var characterType = (Job)random.Next(0, 3);
+            
+            AttackStat? atkStat = null; DefendStat? defStat = null;
+            if (characterType == Job.Warrior)
+            {
+                atkStat = new AttackStat(random.Next(18, 31), random.Next(10, 14), random.Next(1, 8));
+                atkStat += level;
+                defStat = new DefendStat(random.Next(20, 26), random.Next(10, 15), random.Next(1, 10));
+                defStat += level;
+            }
+            else if (characterType == Job.Archer)
+            {
+                atkStat = new AttackStat(random.Next(8, 12), random.Next(18, 31), random.Next(5, 10));
+                atkStat += level;
+                defStat = new DefendStat(random.Next(8, 12), random.Next(20, 26), random.Next(5, 12));
+                defStat += level;
+            }
+            else if (characterType == Job.Wizard)
+            {
+                atkStat = new AttackStat(random.Next(4, 10), random.Next(8, 12), random.Next(18, 31));
+                atkStat += level;
+                defStat = new DefendStat(random.Next(5, 12), random.Next(8, 12), random.Next(20, 26));
+                defStat += level;
+            }
+            var price = random.Next(60, 100) + (level - 1) * 80;
+
+            int id;
+            while (true)
+            {
+                id = HashCode.Combine(name) + random.Next(1000, 9999);
+                if (MercenaryList.All(m => m.Id != id)) break;
+            }
+
+            return characterType switch
+            {
+                Job.Warrior => new Warrior(id, new CharacterStat(name, maxHealth, maxHealth, maxMagicPoint, maxMagicPoint, 10, 1.5f, level, atkStat ?? new AttackStat(1, 1, 1), defStat ?? new DefendStat(1, 1, 1)), price, 0),
+                Job.Wizard => new Wizard(id, new CharacterStat(name, maxHealth, maxHealth, maxMagicPoint, maxMagicPoint, 10, 1.5f, level, atkStat ?? new AttackStat(1, 1, 1), defStat ?? new DefendStat(1, 1, 1)), price, 0),
+                Job.Archer => new Archer(id, new CharacterStat(name, maxHealth, maxHealth, maxMagicPoint, maxMagicPoint, 10, 1.5f, level, atkStat ?? new AttackStat(1, 1, 1), defStat ?? new DefendStat(1, 1, 1)), price, 0),
+                _ => throw new ArgumentOutOfRangeException(nameof(characterType), characterType, null)
+            };
+        }
     }
 }

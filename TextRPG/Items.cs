@@ -55,7 +55,7 @@ namespace TextRPG
         public override string ToString()
         {
             StringBuilder sb = new();
-            sb.Append($"Attack : {Attack}, ").Append($"Range Attack : {RangeAttack}, ").Append($"Magic Attack : {MagicAttack}");
+            sb.Append($"Atk : {Attack}, ").Append($"Rng Atk : {RangeAttack}, ").Append($"Mag Atk : {MagicAttack}");
             return sb.ToString();
         }
     }
@@ -112,7 +112,7 @@ namespace TextRPG
         public override string ToString()
         {
             StringBuilder sb = new();
-            sb.Append($"Defend : {Defend}, ").Append($"Range Defend : {RangeDefend}, ").Append($"Magic Defend : {MagicDefend}");
+            sb.Append($"Def : {Defend}, ").Append($"Rng Def : {RangeDefend}, ").Append($"Mag Def : {MagicDefend}");
             return sb.ToString();
         }
     }
@@ -784,11 +784,17 @@ namespace TextRPG
         public ItemCategory Category { get; protected set; } = ItemCategory.Consumable;
         public Rarity Rarity { get { return rarity; } protected set { rarity = value; } }
         public ConsumableCategory ConsumableCategory { get { return consumableCategory; } protected set { consumableCategory = value; } }
+        public int TargetId { get; set; }
 
         // Constructor
         public Consumables(string name, float coefficient, int price, ConsumableCategory consumableCategory, Rarity rarity)
         {
             this.name = name; this.coefficient = coefficient; this.price = price; this.consumableCategory = consumableCategory; this.rarity = rarity;
+        }
+        public Consumables(string name, float coefficient, int price, ConsumableCategory consumableCategory, Rarity rarity, int targetId)
+        {
+            this.name = name; this.coefficient = coefficient; this.price = price; this.consumableCategory = consumableCategory; this.rarity = rarity;
+            TargetId = targetId;
         }
 
         // Methods
@@ -798,7 +804,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public virtual void OnUsed(Character character)
         {
-            character.Consumables.Remove(this);
+            GameManager.SelectedCharacter.Consumables.Remove(this);
         }
 
         /// <summary>
@@ -987,19 +993,19 @@ namespace TextRPG
         public AttackStat AttackStat { get { return attackStat; } protected set { attackStat = value; } }
 
         // Constructor
-        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity = Rarity.Common)
-            : base(name, coefficient, price, ConsumableCategory.IncreaseAttack, rarity)
+        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity, int targetId)
+            : base(name, coefficient, price, ConsumableCategory.IncreaseAttack, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
         }
-        public AttackBuffPotion(AttackBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity)
+        public AttackBuffPotion(AttackBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity, potion.TargetId)
         {
             attackStat = new(potion.AttackStat);
         }
 
         [JsonConstructor]
-        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory)
-            : base(name, coefficient, price, consumableCategory, rarity)
+        public AttackBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory, int targetId)
+            : base(name, coefficient, price, consumableCategory, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
         }
@@ -1011,6 +1017,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public override void OnUsed(Character character)
         {
+            TargetId = character.Id;
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
@@ -1064,19 +1071,19 @@ namespace TextRPG
         public DefendStat DefendStat { get { return defendStat; } protected set { defendStat = value; } }
 
         // Constructor
-        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity = Rarity.Common)
-            : base(name, coefficient, price, ConsumableCategory.IncreaseDefence, rarity)
+        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity, int targetId)
+            : base(name, coefficient, price, ConsumableCategory.IncreaseDefence, rarity, targetId)
         {
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
         }
-        public DefendBuffPotion(DefendBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity)
+        public DefendBuffPotion(DefendBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity, potion.TargetId)
         {
             defendStat = new(potion.DefendStat);
         }
 
         [JsonConstructor]
-        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory)
-            : base(name, coefficient, price, consumableCategory, rarity)
+        public DefendBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory, int targetId)
+            : base(name, coefficient, price, consumableCategory, rarity, targetId)
         {
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
         }
@@ -1088,6 +1095,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public override void OnUsed(Character character)
         {
+            TargetId = character.Id;
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
@@ -1142,21 +1150,21 @@ namespace TextRPG
         public DefendStat DefendStat { get { return defendStat; } protected set { defendStat = value; } }
 
         // Constructor
-        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity = Rarity.Common)
-            : base(name, coefficient, price, ConsumableCategory.IncreaseAllStat, rarity)
+        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity, int targetId)
+            : base(name, coefficient, price, ConsumableCategory.IncreaseAllStat, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
         }
-        public AllBuffPotion(AllBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity)
+        public AllBuffPotion(AllBuffPotion potion) : base(potion.Name, potion.Coefficient, potion.Price, potion.ConsumableCategory, potion.Rarity, potion.TargetId)
         {
             attackStat = new(potion.AttackStat);
             defendStat = new(potion.DefendStat);
         }
 
         [JsonConstructor]
-        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory)
-            : base(name, coefficient, price, consumableCategory, rarity)
+        public AllBuffPotion(string name, float coefficient, int price, Rarity rarity, ConsumableCategory consumableCategory, int targetId)
+            : base(name, coefficient, price, consumableCategory, rarity, targetId)
         {
             attackStat = new AttackStat(coefficient, coefficient, coefficient);
             defendStat = new DefendStat(coefficient, coefficient, coefficient);
@@ -1169,6 +1177,7 @@ namespace TextRPG
         /// <param name="character"></param>
         public override void OnUsed(Character character)
         {
+            TargetId = character.Id;
             GameManager.Exposables.Enqueue(this);
 
             base.OnUsed(character);
@@ -1311,81 +1320,4 @@ namespace TextRPG
     }
 
     #endregion
-
-    /// <summary>
-    /// Lists of items
-    /// </summary>
-    static class ItemLists
-    {
-        public static readonly Armor[] Armors = {
-            new Helmet("사슬 헬멧", new DefendStat(3.1f, 2.4f, 1.2f), 15, Rarity.Common),
-            new ChestArmor("사슬 갑옷상의", new DefendStat(5.1f, 4.2f, 3.3f), 30, Rarity.Common),
-            new LegArmor("사슬 갑옷하의", new DefendStat(1.5f, 1.3f, 0f), 8, Rarity.Common),
-            new FootArmor("사슬 장화", new DefendStat(0.5f, 0.3f, 0.1f), 4, Rarity.Common),
-            new Gauntlet("사슬 건틀렛", new DefendStat(1.5f, 1.3f, 0f), 8, Rarity.Common),
-            new Helmet("철제 헬멧", new DefendStat(5.1f, 4.2f, 3.3f), 50, Rarity.Exclusive),
-            new ChestArmor("철제 갑옷상의", new DefendStat(7.1f, 6.2f, 5.3f), 80, Rarity.Exclusive),
-            new LegArmor("철제 갑옷하의", new DefendStat(3.5f, 3.3f, 1.2f), 40, Rarity.Exclusive),
-            new FootArmor("철제 장화", new DefendStat(1.5f, 1.3f, 0.6f), 30, Rarity.Exclusive),
-            new Gauntlet("철제 건틀렛", new DefendStat(3.5f, 3.3f, 1f), 40, Rarity.Exclusive),
-            new Helmet("티타늄 헬멧", new DefendStat(7.1f, 6.2f, 5.3f), 120, Rarity.Rare),
-            new ChestArmor("티타늄 갑옷상의", new DefendStat(9.1f, 8.2f, 7.3f), 180, Rarity.Rare),
-            new LegArmor("티타늄 갑옷하의", new DefendStat(5.5f, 5.3f, 3.2f), 100, Rarity.Rare),
-            new FootArmor("티타늄 장화", new DefendStat(3.5f, 3.3f, 1.6f), 80, Rarity.Rare),
-            new Gauntlet("티타늄 건틀렛", new DefendStat(5.5f, 5.3f, 1.2f), 100, Rarity.Rare),
-            new Helmet("다이아몬드 헬멧", new DefendStat(10.1f, 9.2f, 8.3f), 260, Rarity.Hero),
-            new ChestArmor("다이아몬드 갑옷상의", new DefendStat(12.1f, 11.2f, 10.3f), 480, Rarity.Hero),
-            new LegArmor("다이아몬드 갑옷하의", new DefendStat(8.5f, 8.3f, 6.2f), 220, Rarity.Hero),
-            new FootArmor("다이아몬드 장화", new DefendStat(6.5f, 6.3f, 4.6f), 160, Rarity.Hero),
-            new Gauntlet("다이아몬드 건틀렛", new DefendStat(10.5f, 8.3f, 2.2f), 220, Rarity.Hero),
-            new Helmet("\"던\"의 헬멧", new DefendStat(20.1f, 19.2f, 18.3f), 1000, Rarity.Legend),
-            new ChestArmor("\"던\"의 갑옷상의", new DefendStat(22.1f, 21.2f, 20.3f), 1500, Rarity.Legend),
-            new LegArmor("\"던\"의 갑옷하의", new DefendStat(18.5f, 18.3f, 16.2f), 650, Rarity.Legend),
-            new FootArmor("\"던\"의 장화", new DefendStat(16.5f, 16.3f, 14.6f), 500, Rarity.Legend),
-            new Gauntlet("\"던\"의 건틀렛", new DefendStat(18.5f, 18.3f, 12.2f), 650, Rarity.Legend),
-        };
-
-        public static readonly Weapon[] Weapons = {
-            new Sword("목검", new AttackStat(7f, 0f, 0f), 10, Rarity.Common),
-            new Bow("새총", new AttackStat(0f, 7f, 0f), 10, Rarity.Common),
-            new Staff("나무 스태프", new AttackStat(0f, 0f, 7f), 10, Rarity.Common),
-            new Sword("철제 검", new AttackStat(12.5f, 0f, 0f), 120, Rarity.Exclusive),
-            new Bow("사냥꾼의 활", new AttackStat(0f, 12.5f, 0f), 120, Rarity.Exclusive),
-            new Staff("고목나무 스태프", new AttackStat(0f, 0f, 12.5f), 120, Rarity.Exclusive),
-            new Sword("티타늄 검", new AttackStat(17.5f, 0f, 0f), 250, Rarity.Rare),
-            new Bow("각궁", new AttackStat(0f, 17.5f, 0f), 250, Rarity.Rare),
-            new Staff("버드나무 스태프", new AttackStat(0f, 0f, 17.5f), 250, Rarity.Rare),
-            new Sword("다이아몬드 검", new AttackStat(25f, 0f, 0f), 500, Rarity.Hero),
-            new Bow("신궁", new AttackStat(0f, 25f, 0f), 500, Rarity.Hero),
-            new Staff("딱총나무 스태프", new AttackStat(0f, 0f, 25f), 500, Rarity.Hero),
-            new Sword("\"던\"의 검", new AttackStat(60f, 0f, 0f), 1000, Rarity.Legend),
-            new Bow("\"던\"의 활", new AttackStat(0f, 60f, 0f), 1000, Rarity.Legend),
-            new Staff("\"던\"의 스태프", new AttackStat(0f, 0f, 60f), 1000, Rarity.Legend),
-        };
-
-        public static readonly Consumables[] Consumables =
-        {
-            new HealthPotion("소형 HP 포션", 20, 15, Rarity.Common),
-            new HealthPotion("중형 HP 포션", 50, 80, Rarity.Exclusive),
-            new HealthPotion("대형 HP 포션", 100, 150, Rarity.Rare),
-            new MagicPotion("소형 MP 포션", 15, 30, Rarity.Common),
-            new MagicPotion("중형 MP 포션", 60, 130, Rarity.Exclusive),
-            new MagicPotion("대형 MP 포션", 120, 260, Rarity.Rare),
-            new AttackBuffPotion("하급 공격력 증가 포션", 5, 10, Rarity.Common),
-            new AttackBuffPotion("중급 공격력 증가 포션", 10, 30, Rarity.Exclusive),
-            new AttackBuffPotion("상급 공격력 증가 포션", 15, 50, Rarity.Rare),
-            new DefendBuffPotion("하급 방어력 증가 포션", 5, 10, Rarity.Common),
-            new DefendBuffPotion("중급 방어력 증가 포션", 10, 30, Rarity.Exclusive),
-            new DefendBuffPotion("상급 방어력 증가 포션", 15, 50, Rarity.Rare),
-            new AllBuffPotion("중급 모든 스텟 증가 포션", 10, 150, Rarity.Rare),
-            new AllBuffPotion("상급 모든 스텟 증가 포션", 30, 350, Rarity.Hero),
-            new AllBuffPotion("최상급 모든 스텟 증가 포션", 100, 1000, Rarity.Legend),
-        };
-
-        public static readonly ImportantItem[] ImportantItems =
-        {
-            new GoblinEar("고블린의 찢어진 귀", 10, Rarity.Common),
-            new GoblinEye("고블린의 사슬어린 눈", 10, Rarity.Common),
-        };
-    }
 }

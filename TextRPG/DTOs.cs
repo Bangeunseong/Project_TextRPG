@@ -10,5 +10,6 @@ namespace TextRPG
         public GameTime GameTime { get; set; }
 
         public List<Consumables> Exposables { get; set; } = new();
+        public LinkedList<Character> Mercenaries { get; set; } = new();
     }
 }
