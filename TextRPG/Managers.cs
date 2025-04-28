@@ -2450,6 +2450,10 @@ namespace TextRPG
         /// <returns>List of Added mercenaries</returns>
         public static LinkedList<Character> GetMercenaries() { return MercenaryList; }
 
+        /// <summary>
+        /// Set mercenaries to the list
+        /// </summary>
+        /// <param name="mercenaries"></param>
         public static void SetMercenaries(LinkedList<Character> mercenaries) 
         { 
             foreach(var mercenary in mercenaries)
